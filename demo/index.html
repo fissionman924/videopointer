@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Video Pointer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.1/foundation.min.css"/>
+    <link rel="stylesheet" href="demo.css"/>
+</head>
+<body>
+    <div class="row">
+    <h1>Video Pointer</h1>
+    <p>A jQuery plugin to create pointers to specific locations in a video from target points</p>
+    <h2>Demo</h2>
+    <section class="video-pointer" id="vp1">
+        <video preload="auto" autoplay="0" loop="0" class="pointer-video" muted>
+            <source src="big_buck_bunny_240p_1mb.mp4" type="video/mp4">
+        </video>
+        <section class="pointer-items">
+            <button class="pointer-item">
+                <div class="pointer-item-title">
+                    <img src="http://e5dfeda5c00f5481d807-51ebf4ae8433c98645f4883761358ecd.r73.cf1.rackcdn.com/global/imagelib/uncategorized/section-1-solution-1-box-01.png" class="pointer-expander">
+                    <h3>Primary Connectivity</h3>
+                    <img src="http://e5dfeda5c00f5481d807-51ebf4ae8433c98645f4883761358ecd.r73.cf1.rackcdn.com/global/imagelib/uncategorized/section-1-solution-1-dot.png">
+                </div>
+                <ul class="pointer-item-details">
+                    <li>Time to connect</li>
+                    <li>Turnkey connection</li>
+                </ul>
+            </button>
+            <button class="pointer-item">
+                <div class="pointer-item-title">
+                    <img src="http://e5dfeda5c00f5481d807-51ebf4ae8433c98645f4883761358ecd.r73.cf1.rackcdn.com/global/imagelib/uncategorized/section-1-solution-2-box-01.png" class="pointer-expander">
+                    <h3>Business Continuity</h3>
+                    <img src="http://e5dfeda5c00f5481d807-51ebf4ae8433c98645f4883761358ecd.r73.cf1.rackcdn.com/global/imagelib/uncategorized/section-1-solution-1-dot.png">
+                </div>
+                <ul class="pointer-item-details">
+                    <li>Downtime</li>
+                    <li>Maintaining operations</li>
+                </ul>
+            </button>
+        </section>
+    </section>
+<h5>HTML</h5>
+<pre class="code">
+&lt;section class=&quot;video-pointer&quot; id=&quot;vp1&quot;&gt;
+    &lt;video preload=&quot;auto&quot; autoplay=&quot;0&quot; loop=&quot;0&quot; class=&quot;pointer-video&quot; muted&gt;
+        &lt;source src=&quot;big_buck_bunny_240p_1mb.mp4&quot; type=&quot;video/mp4&quot;&gt;
+    &lt;/video&gt;
+    &lt;section class=&quot;pointer-items&quot;&gt;
+        &lt;button class=&quot;pointer-item&quot;&gt;
+            &lt;div class=&quot;pointer-item-title&quot;&gt;
+                &lt;img src=&quot;http://e5dfeda5c00f5481d807-51ebf4ae8433c98645f4883761358ecd.r73.cf1.rackcdn.com/global/imagelib/uncategorized/section-1-solution-1-box-01.png&quot; class=&quot;pointer-expander&quot;&gt;
+                &lt;h3&gt;Primary Connectivity&lt;/h3&gt;
+                &lt;img src=&quot;http://e5dfeda5c00f5481d807-51ebf4ae8433c98645f4883761358ecd.r73.cf1.rackcdn.com/global/imagelib/uncategorized/section-1-solution-1-dot.png&quot;&gt;
+            &lt;/div&gt;
+            &lt;ul class=&quot;pointer-item-details&quot;&gt;
+                &lt;li&gt;Time to connect&lt;/li&gt;
+                &lt;li&gt;Turnkey connection&lt;/li&gt;
+            &lt;/ul&gt;
+        &lt;/button&gt;
+        &lt;button class=&quot;pointer-item&quot;&gt;
+            &lt;div class=&quot;pointer-item-title&quot;&gt;
+                &lt;img src=&quot;http://e5dfeda5c00f5481d807-51ebf4ae8433c98645f4883761358ecd.r73.cf1.rackcdn.com/global/imagelib/uncategorized/section-1-solution-2-box-01.png&quot; class=&quot;pointer-expander&quot;&gt;
+                &lt;h3&gt;Business Continuity&lt;/h3&gt;
+                &lt;img src=&quot;http://e5dfeda5c00f5481d807-51ebf4ae8433c98645f4883761358ecd.r73.cf1.rackcdn.com/global/imagelib/uncategorized/section-1-solution-1-dot.png&quot;&gt;
+            &lt;/div&gt;
+            &lt;ul class=&quot;pointer-item-details&quot;&gt;
+                &lt;li&gt;Downtime&lt;/li&gt;
+                &lt;li&gt;Maintaining operations&lt;/li&gt;
+            &lt;/ul&gt;
+        &lt;/button&gt;
+    &lt;/section&gt;
+&lt;/section&gt;
+</pre>
+<h5>JavaScript</h5>
+<pre class="code">
+$(&quot;#vp1&quot;).videopointer({
+    points:[
+        {
+            x:47,
+            y:63,
+            color:&quot;#9BC9BD&quot;,
+            time:12
+        },
+        {
+            x:50,
+            y:35,
+            color:&quot;#A2B5C4&quot;,
+            time:1
+        }
+    ]
+}); 
+</pre>
+<h2>Functions</h2>
+<ul>
+    <li>rerender</li>
+    <li>clearImages</li>
+    <li>generatePoints</li>
+    <li>getOptions</li>
+    <li>getDefaults</li>
+    <li>destroy</li>
+        </ul>
+<h2>Events</h2>
+        <ul>
+            <li>No Events Yet</li>
+        </ul>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+    <script src="../src/js/video-pointer.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>

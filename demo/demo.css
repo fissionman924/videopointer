@@ -1,0 +1,11 @@
+body { background-color:#eee; }
+.video-pointer { display:flex; flex-direction: row; width:100%; align-items: center; justify-content: center; }
+.pointer-video { height:400px; width:400px; margin:50px; }
+.pointer-items { display:flex; flex-direction: column; align-items:center; justify-content: center; background-color:rgba(0,0,0,0.1); height:500px; }
+.pointer-item { border-radius:10px; background:none; padding:10px 20px; border:none; margin:20px; min-width:300px; text-align: left; }
+.pointer-item .pointer { display:none; }
+.pointer-item:hover, .pointer-item:active, .pointer-item:focus { background-color:rgba(255,255,255,0.2); }
+.pointer-item:hover .pointer, .pointer-item:active .pointer, .pointer-item:focus .pointer { display:block; }
+.pointer-item-title * { display:inline-block; }
+.pointer-expander { vertical-align: middle; margin-right:10px; }
+.code { background-color:white; padding:10px; border:1px solid silver; }

@@ -41,7 +41,7 @@
             var index = $(context.options.itemSelector, context.$element).index(event.currentTarget);
             var time = context.options.points[index].time;
             var video = $(context.options.videoSelector, context.$element)[0];
-            if(time===undefined) {
+            if (time === undefined) {
                 return false;
             }
             video.currentTime = time;
@@ -128,7 +128,7 @@
                 x: $item.offset().left,
                 y: $item.offset().top,
                 w: $item.width(),
-                h: $item.height()
+                h: $item.outerHeight()
             };
             items.push(item);
         });
@@ -174,7 +174,7 @@
             //Find the absolute position of the expander icon on the page
             var $expander = $(element);
             pointB.x = $expander.offset().left;
-            pointB.y = $expander.offset().top + $expander.height() / 2;
+            pointB.y = $expander.offset().top + $expander.outerHeight() / 2;
 
             //Solve for the sides of the imaginary triangle so we can angle the pointer
             var angles = {

@@ -57,6 +57,9 @@
         $(window).on("resize", function(event) {
             context.generatePoints.apply(context);
         });
+        $(context.options.videoSelector, this.$element).on("canplay",function(event) {
+            context.rerender.apply(context);
+        })
     };
 
     //Simple function for comparing the values on two objects for equality based on type and values

@@ -2,8 +2,195 @@
 <html>
 <head>
     <title>Video Pointer</title>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.1/foundation.min.css"/>
+    <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
-    <h1>Video Pointer Page</h1>
+    <header class="page-header">
+        <div class="top-bar">
+            <div class="row">
+                <div class="top-bar-left">
+                    <ul class="dropdown menu" data-dropdown-menu>
+                        <li class="menu-text">Video Pointer</li>
+                        <li><a href="#demo-video-pointer">Demo</a></li>
+                        <li><a href="#information">Information</a></li>
+                        <li><a href="#options">Options</a></li>
+                        <li><a href="#methods">Methods</a></li>
+                        <li><a href="#events">Events</a></li>
+                        <li><a href="#support">Support</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    <section class="page-section">
+        <h1 class="text-center">Video Pointer</h1>
+        <section id="demo-video-pointer">
+            <div class="row">
+                <div class="large-3 columns">
+                    <ul class="pointer-items text-right">
+                        <li class="pointer-item">Point 1 <span class="pointer-anchor">&bull;</span></li>
+                        <li class="pointer-item">Point 2 <span class="pointer-anchor">&bull;</span></li>
+                        <li class="pointer-item">Point 3 <span class="pointer-anchor">&bull;</span></li>
+                    </ul>
+                </div>
+                <div class="large-6 columns">
+                    <video preload="auto" controls class="pointer-video" muted>
+                        <source src="video/big_buck_bunny_240p_1mb.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="large-3 columns">
+                    <ul class="pointer-items">
+                        <li class="pointer-item"><span class="pointer-anchor">&bull;</span> Point 4</li>
+                        <li class="pointer-item"><span class="pointer-anchor">&bull;</span> Point 5</li>
+                        <li class="pointer-item"><span class="pointer-anchor">&bull;</span> Point 6</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="large-offset-3 large-6 columns">
+                    <ul class="pointer-items hlist text-center">
+                        <li class="pointer-item"><span class="pointer-anchor">&bull;</span> Point 7</li>
+                        <li class="pointer-item"><span class="pointer-anchor">&bull;</span> Point 8</li>
+                        <li class="pointer-item"><span class="pointer-anchor">&bull;</span> Point 9</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </section>
+    <section class="row">
+        <div id="information">
+            <h2>Information</h2>
+            <p>The video pointer is used to call out specific locations at specific points in time in a video. It makes use of the canvas element to generate the lines pointing to the appropriate video location.</p>
+            <h3>Initialization</h3>
+            <pre class="code">$('#demo-video-pointer').videopointer();</pre>
+        </div>
+        <div id="options">
+            <h2>Options</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>points</td>
+                        <td>Array</td>
+                        <td>[]</td>
+                        <td>The array of points that specifies end point in the video in percentage, the color of the end point, and the time in the video to stop.</td>
+                    </tr>
+                    <tr>
+                        <td>videoSelector</td>
+                        <td>String</td>
+                        <td>"video"</td>
+                        <td>The css selector for the video element</td>
+                    </tr>
+                    <tr>
+                        <td>itemSelector</td>
+                        <td>String</td>
+                        <td>".pointer-item"</td>
+                        <td>The css selector for the video element</td>
+                    </tr>
+                    <tr>
+                        <td>expanderSelector</td>
+                        <td>String</td>
+                        <td>".pointer-expander"</td>
+                        <td>The element that is serving as the starting point for each pointer. This element must be found inside the element selected with the itemSelector.</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3>Points</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>x</td>
+                        <td>Number</td>
+                        <td>0</td>
+                        <td>Horizontal location of the end point as a percent of the video container width.</td>
+                    </tr>
+                    <tr>
+                        <td>y</td>
+                        <td>Number</td>
+                        <td>0</td>
+                        <td>Vertical location of the end point as a percent of the video container height.</td>
+                    </tr>
+                    <tr>
+                        <td>color</td>
+                        <td>String</td>
+                        <td>"#000"</td>
+                        <td>The color of the fill for the end point.</td>
+                    </tr>
+                    <tr>
+                        <td>time</td>
+                        <td>Number</td>
+                        <td>0</td>
+                        <td>The number of seconds into the video that the point references.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="methods">
+            <h2>Methods</h2>
+            <ul>
+                <li><a href="#methods-rerender">rerender</a></li>
+                <li><a href="#methods-clearImages">clearImages</a></li>
+                <li><a href="#methods-generatePoints">generatePoints</a></li>
+                <li><a href="#methods-destroy">destroy</a></li>
+            </ul>
+            <section class="method" id="methods-rerender">
+                <h3>rerender</h3>
+                <pre class="code">$('#demo-video-pointer').videopointer('rerender');</pre>
+                <p>Rerender forces a re-rendering of the pointer images. This can be useful if you're changing the elements or their locations on the page.</p>
+            </section>
+            <section class="method" id="methods-clearImages">
+                <h3>clearImages</h3>
+                <pre class="code">$('#demo-video-pointer').videopointer('clearImages');</pre>
+                <p>Removes all pointer images from the page.</p>
+            </section>
+            <section class="method" id="methods-generatePoints">
+                <h3>generatePoints</h3>
+                <pre class="code">$('#demo-video-pointer').videopointer('generatePoints');</pre>
+                <p>Call to the function that generates the pointer images. The rerender function calls clearImages followed by generatePoints.</p>
+            </section>
+            <section class="method" id="methods-destroy">
+                <h3>destroy</h3>
+                <pre class="code">$('#demo-video-pointer').videopointer('destroy');</pre>
+                <p>Removes all generate markup and returns the page to it's state prior to the initialization of the video pointer.</p>
+            </section>
+        </div>
+        <div id="events">
+            <h2>Events</h2>
+            <ul>
+                <li>There are currently no events, though we're working to add some.</li>
+            </ul>
+        </div>
+        <div id="support">
+            <h2>Support</h2>
+            <h3>Videos</h3>
+            <p>Currently only the html5 video tag is supported. We're working to add support for Youtube and Vimeo videos.</p>
+        </div>
+    </section>
+    <footer class="page-footer">
+        <div class="row">
+            &copy;2016 Nathaniel Lord
+        </div>
+    </footer>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.2.1/foundation.min.js"></script>
+    <script src="js/video-pointer.js"></script>
+    <script src="js/site.js"></script>
 </body>
 </html>

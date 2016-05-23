@@ -13,7 +13,7 @@ h2 { border-bottom:1px solid silver; margin-top:10px; }
 .page-section { background-color:#BDBDBD; padding:50px 0; color:white; box-shadow: inset 0px -1px 2px rgba(0,0,0,0.4); margin-bottom:20px; }
 .pointer-items { list-style: none; margin:0px; padding:0px; }
 .pointer-item { margin:20px; }
-.pointer-item .pointer { display:none; z-index:3; }
+.pointer-item .pointer { display:none; z-index:0; }
 .pointer-item:hover, .pointer-item:active, .pointer-item:focus { background-color:rgba(255,255,255,0.2); }
 .pointer-item:hover .pointer, .pointer-item:active .pointer, .pointer-item:focus .pointer { display:block; }
 .hlist li { display:inline-block; }

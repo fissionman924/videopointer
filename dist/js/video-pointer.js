@@ -57,6 +57,9 @@
         $(window).on("resize", function(event) {
             context.generatePoints.apply(context);
         });
+        $(context.options.videoSelector, this.$element).on("canplay", function(event) {
+            context.rerender.apply(context);
+        });
     };
 
     //Simple function for comparing the values on two objects for equality based on type and values
@@ -191,7 +194,7 @@
             sides.c = sides.a * Math.sin(Math.radians(angles.C)) / Math.sin(Math.radians(angles.A));
 
             if (pointA.x > pointB.x) {
-                midPoint.x = pointA.x - sides.c;
+                midPoint.x = pointB.x + sides.c;
             } else {
                 midPoint.x = pointA.x + sides.c;
             }
@@ -199,6 +202,7 @@
             if (Math.abs(pointA.x - pointB.x) < Math.abs(pointA.y - pointB.y)) {
                 midPoint.x = pointA.x;
             }
+
             midPoint.y = pointB.y;
 
             //Create the image and add it to this pointer item
@@ -269,7 +273,7 @@
         //Pointer coming from right or left?
         if (pointA.x > pointC.x) {
             points.a.x = 1;
-            points.b.x = pointA.x - pointB.x;
+            points.b.x = pointB.x - pointC.x;
             points.c.x = pointA.x - pointC.x;
         } else {
             points.a.x = dims.w;

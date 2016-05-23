@@ -116,8 +116,8 @@
         //Get location and dimensions for the video container
         var $vid = $(context.options.videoSelector, this.$element);
         var vid = {
-            x: $vid.offset().left,
-            y: $vid.offset().top,
+            x: $vid.position().left,
+            y: $vid.position().top,
             w: $vid.width(),
             h: $vid.height()
         };
@@ -125,8 +125,8 @@
         $(context.options.expanderSelector, this.$element).each(function(index, element) {
             var $item = $(element);
             var item = {
-                x: $item.offset().left,
-                y: $item.offset().top,
+                x: $item.position().left,
+                y: $item.position().top,
                 w: $item.width(),
                 h: $item.outerHeight()
             };
@@ -173,8 +173,8 @@
 
             //Find the absolute position of the expander icon on the page
             var $expander = $(element);
-            pointB.x = $expander.offset().left;
-            pointB.y = $expander.offset().top + $expander.outerHeight() / 2;
+            pointB.x = $expander.position().left;
+            pointB.y = $expander.position().top + $expander.outerHeight() / 2;
 
             //Solve for the sides of the imaginary triangle so we can angle the pointer
             var angles = {
@@ -190,35 +190,48 @@
             sides.b = sides.a * Math.sin(Math.radians(angles.B)) / Math.sin(Math.radians(angles.A));
             sides.c = sides.a * Math.sin(Math.radians(angles.C)) / Math.sin(Math.radians(angles.A));
 
+            if (pointA.x > pointB.x) {
+                midPoint.x = pointA.x - sides.c;
+            } else {
+                midPoint.x = pointA.x + sides.c;
+            }
             //Determine if we can stick with the predefined angle or if we need to switch to a 90 degree angle based on proximity
-            midPoint.x = pointA.x + sides.c;
             if (Math.abs(pointA.x - pointB.x) < Math.abs(pointA.y - pointB.y)) {
                 midPoint.x = pointA.x;
             }
             midPoint.y = pointB.y;
 
             //Create the image and add it to this pointer item
+            image = null;
             image = drawAngle.call(context, pointA, midPoint, pointB, currentPoint.color);
             $(element).parents(context.options.itemSelector).append(image);
+            $(image).css("position", "absolute");
 
             //Place the image at the correct location based on whether the angle is going down or up
             var vOffset = 1;
             if ($(image).height() <= 12) {
                 vOffset = (context.options.endPointRadius + context.options.endPointStroke) - Math.abs(pointB.y - pointA.y);
             }
-            if (pointA.y > pointB.y) {
+
+            if (pointA.x > pointB.x) {
                 $(image).css({
-                    "position": "absolute",
-                    "top": pointB.y - vOffset + "px",
-                    "left": pointB.x - $(image).width() + "px"
-                }).addClass("pointer");
+                    "left": pointB.x + "px"
+                });
             } else {
                 $(image).css({
-                    "position": "absolute",
-                    "top": pointB.y - $(image).height() + vOffset + "px",
-                    "left": pointB.x - $(image).width() + "px"
-                }).addClass("pointer");
+                    "left": pointB.x - image.width + "px"
+                });
             }
+            if (pointA.y > pointB.y) {
+                $(image).css({
+                    "top": pointB.y - vOffset + "px"
+                });
+            } else {
+                $(image).css({
+                    "top": pointB.y - image.height + vOffset + "px"
+                });
+            }
+            $(image).addClass("pointer");
         });
     };
 
@@ -226,10 +239,17 @@
     var drawAngle = function(pointA, pointB, pointC, color) {
         var image = new Image();
         var endPointRadius = this.options.endPointRadius;
+
+        var points = {
+            a: {},
+            b: {},
+            c: {}
+        };
+
         //Get 
         var dims = {
-            w: Math.abs(pointC.x - pointA.x) + endPointRadius + 6,
-            h: Math.abs(pointA.y - pointC.y) + endPointRadius + 6
+            w: Math.ceil(Math.abs(pointC.x - pointA.x) + endPointRadius + 6),
+            h: Math.ceil(Math.abs(pointA.y - pointC.y) + endPointRadius + 6)
         };
         //Create the canvas element in memory and define its dimensions
         var canvas = document.createElement("canvas");
@@ -246,46 +266,31 @@
                 vOffset = 0;
             }
         }
-        //Draw image with a downward angle
-        if (pointA.y > pointC.y) {
-            drawLine(drawing, {
-                x: dims.w,
-                y: 1
-            }, {
-                x: dims.w - (pointC.x - pointB.x),
-                y: 1
-            }, 2, this.options.lineColor);
-            drawLine(drawing, {
-                x: dims.w - (pointC.x - pointB.x),
-                y: 1
-            }, {
-                x: dims.w - (pointC.x - pointA.x),
-                y: pointA.y - pointB.y
-            }, 2, this.options.lineColor);
-            drawCircle(drawing, {
-                x: dims.w - (pointC.x - pointA.x),
-                y: pointA.y - pointB.y
-            }, endPointRadius, 2, color, this.options.lineColor);
-        } else if (pointC.y > pointA.y) { //Draw image with an upward angle
-            drawLine(drawing, {
-                x: dims.w,
-                y: dims.h - vOffset - 1
-            }, {
-                x: dims.w - (pointC.x - pointB.x),
-                y: dims.h - vOffset - 1
-            }, 2, this.options.lineColor);
-            drawLine(drawing, {
-                x: dims.w - (pointC.x - pointB.x),
-                y: dims.h - vOffset - 1
-            }, {
-                x: dims.w - (pointC.x - pointA.x),
-                y: dims.h - (pointB.y - pointA.y) - vOffset - 1
-            }, 2, this.options.lineColor);
-            drawCircle(drawing, {
-                x: dims.w - (pointC.x - pointA.x),
-                y: dims.h - (pointB.y - pointA.y) - vOffset - 1
-            }, endPointRadius, 2, color, this.options.lineColor);
+        //Pointer coming from right or left?
+        if (pointA.x > pointC.x) {
+            points.a.x = 1;
+            points.b.x = pointA.x - pointB.x;
+            points.c.x = pointA.x - pointC.x;
+        } else {
+            points.a.x = dims.w;
+            points.b.x = dims.w - (pointC.x - pointB.x);
+            points.c.x = dims.w - (pointC.x - pointA.x);
         }
+        //Pointer coming from top or bottom?
+        if (pointA.y > pointC.y) {
+            points.a.y = 1;
+            points.b.y = 1;
+            points.c.y = pointA.y - pointB.y;
+        } else if (pointC.y > pointA.y) {
+            points.a.y = dims.h - vOffset - 1;
+            points.b.y = dims.h - vOffset - 1;
+            points.c.y = dims.h - (pointB.y - pointA.y) - vOffset - 1;
+        }
+
+        drawLine(drawing, points.a, points.b, 2, this.options.lineColor);
+        drawLine(drawing, points.b, points.c, 2, this.options.lineColor);
+        drawCircle(drawing, points.c, endPointRadius, 2, color, this.options.lineColor);
+
         image.src = canvas.toDataURL("image/png");
         return image;
     };

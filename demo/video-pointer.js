@@ -265,10 +265,6 @@
         var image = new Image();
         var endPointRadius = this.options.endPointRadius;
 
-        if (midPoint.x !== endPoint.x && Math.abs(midPoint.x - endPoint.x) !== Math.abs(midPoint.y - endPoint.y)) {
-            console.log(endPoint, midPoint);
-        }
-
         var points = {
             anchor: {},
             mid: {},
@@ -310,8 +306,8 @@
         //Pointer coming from top or bottom?
         if (endPoint.y > anchorPoint.y) {
             points.anchor.y = 1;
-            points.mid.y = 1;
-            points.end.y = endPoint.y - midPoint.y;
+            points.mid.y = midPoint.y - anchorPoint.y + 1;
+            points.end.y = endPoint.y - anchorPoint.y + 1;
         } else if (anchorPoint.y > endPoint.y) {
             points.anchor.y = dims.h - vOffset - 1;
             points.mid.y = points.anchor.y - (anchorPoint.y - midPoint.y) - vOffset - 1;

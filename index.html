@@ -79,7 +79,7 @@
             <h2>Information</h2>
             <p>The video pointer is used to call out specific locations at specific points in time in a video. It makes use of the canvas element to generate the lines pointing to the appropriate video location.</p>
             <h3>Initialization</h3>
-            <pre class="code">$('#demo-video-pointer').videopointer({points:[{x:47,y:63,color:"#9BC9BD",time:12},{x:50,y:35,color:"#A2B5C4",time:1}]});</pre>
+            <pre class="code">$('#demo-video-pointer').videopointer({points:[{x:47,y:63,color:"#9BC9BD",time:12},{x:50,y:35,color:"#A2B5C4",time:1}],endPoint:{style:"circle"}});</pre>
         </div>
         <div id="options">
             <h2>Options</h2>
@@ -112,14 +112,26 @@
                         <td>The css selector for the video element</td>
                     </tr>
                     <tr>
-                        <td>expanderSelector</td>
+                        <td>anchorSelector</td>
                         <td>String</td>
-                        <td>".pointer-expander"</td>
-                        <td>The element that is serving as the starting point for each pointer. This element must be found inside the element selected with the itemSelector.</td>
+                        <td>".pointer-anchor"</td>
+                        <td>The element that is serving as the starting point for each pointer. This element must be found inside the element selected with the itemSelector. If one is not provided this will automatically default to the itemSelector</td>
+                    </tr>
+                    <tr>
+                        <td>line</td>
+                        <td>Object</td>
+                        <td>See line Reference</td>
+                        <td>An object containing properties that control how the line looks.</td>
+                    </tr>
+                    <tr>
+                        <td>endPoint</td>
+                        <td>Object</td>
+                        <td>See endPoint Reference</td>
+                        <td>An object containing properties that control how the end point looks.</td>
                     </tr>
                 </tbody>
             </table>
-            <h3>Points</h3>
+            <h3>points</h3>
             <table>
                 <thead>
                     <tr>
@@ -153,6 +165,80 @@
                         <td>Number</td>
                         <td>0</td>
                         <td>The number of seconds into the video that the point references.</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3>line</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>color</td>
+                        <td>String</td>
+                        <td>"#fff"</td>
+                        <td>The default color for all lines being drawn</td>
+                    </tr>
+                    <tr>
+                        <td>width</td>
+                        <td>Number</td>
+                        <td>2</td>
+                        <td>The width of the line. Also known as the stroke width.</td>
+                    </tr>
+                    <tr>
+                        <td>angle</td>
+                        <td>Number</td>
+                        <td>45</td>
+                        <td>If using angled lines this is the angle at wich the line is made. If the angle doesn't work for the space, the line will automatically switch to a 90 degree angle.</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3>endPoint</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>style</td>
+                        <td>String</td>
+                        <td>"none"</td>
+                        <td>The style of the end point. Current options are "none","circle", and "square"</td>
+                    </tr>
+                    <tr>
+                        <td>radius</td>
+                        <td>Number</td>
+                        <td>4</td>
+                        <td>The radius of the circle of side length of the square</td>
+                    </tr>
+                    <tr>
+                        <td>stroke</td>
+                        <td>Number</td>
+                        <td>2</td>
+                        <td>The width of the outline.</td>
+                    </tr>
+                    <tr>
+                        <td>strokeColor</td>
+                        <td>String</td>
+                        <td>"#fff"</td>
+                        <td>The default color for the border of the endpoint</td>
+                    </tr>
+                    <tr>
+                        <td>fillColor</td>
+                        <td>String</td>
+                        <td>"#fff"</td>
+                        <td>The default color for the fill of the endpoint</td>
                     </tr>
                 </tbody>
             </table>

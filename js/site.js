@@ -14,7 +14,6 @@ $(window).load(function() {
        {x:30,y:30,color:"#fff",time:7},
        {x:20,y:20,color:"#fff",time:8},
        {x:75,y:75,color:"#fff",time:9}
-   ],
-   expanderSelector:".pointer-anchor"
+   ]
    }); 
 });

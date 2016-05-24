@@ -19,13 +19,32 @@
     //Plugin defaults - Can be overridden in the properties passed into the plugin
     VideoPointer.DEFAULTS = {
         initialized: false,
-        angle: 45,
         endPointRadius: 4,
         endPointStroke: 2,
         lineColor: "#fff",
+        line: {
+            color: "#fff",
+            width: 2,
+            style: "angled",
+            angle: 45
+        },
+        endPoint: {
+            radius: 4,
+            stroke: 2,
+            style: "circle",
+            strokeColor: "#fff",
+            fillColor: "#fff"
+        },
+        anchorPoint: {
+            radius: 0,
+            stroke: 0,
+            style: "none",
+            strokeColor: "#fff",
+            fillColor: "#fff"
+        },
         videoSelector: "video",
         itemSelector: ".pointer-item",
-        expanderSelector: ".pointer-expander"
+        anchorSelector: ".pointer-anchor"
     };
 
     //Initialization function
@@ -114,7 +133,7 @@
     VideoPointer.prototype.generatePoints = function() {
         var context = this;
         var points = this.options.points;
-        var angle = this.options.angle;
+        var angle = this.options.line.angle;
         var redraw = false;
         //Get location and dimensions for the video container
         var $vid = $(context.options.videoSelector, this.$element);
@@ -125,7 +144,11 @@
             h: $vid.height()
         };
         var items = [];
-        $(context.options.expanderSelector, this.$element).each(function(index, element) {
+        var selector = context.options.anchorSelector;
+        if ($(selector, this.$element).length === 0) {
+            selector = context.options.itemSelector;
+        }
+        $(selector, this.$element).each(function(index, element) {
             var $item = $(element);
             var item = {
                 x: $item.position().left,
@@ -148,7 +171,7 @@
 
         var image;
 
-        $(context.options.expanderSelector, this.$element).each(function(index, element) {
+        $(selector, this.$element).each(function(index, element) {
             //Get the corresponding data point based on index
             var currentPoint = context.options.points[index];
             //If no points are defined for the plugin then move along
@@ -157,7 +180,7 @@
             }
 
             var vertical = false;
-            //Define points (point on video: endPoint, point at expander icon: anchorPoint, and midPoint)
+            //Define points (point on video: endPoint, point at anchor icon: anchorPoint, and midPoint)
             var endPoint = {
                 x: 0,
                 y: 0
@@ -175,24 +198,23 @@
             endPoint.x = (currentPoint.x / 100) * vid.w + vid.x;
             endPoint.y = (currentPoint.y / 100) * vid.h + vid.y;
 
-
-            var $expander = $(element);
+            var $anchor = $(element);
             //If the pointer is originating from above or below the video then make the line go vertical before horizontal
-            if ($expander.position().left >= vid.x && $expander.position().left <= vid.x + vid.w && ($expander.position().top > vid.y + vid.h || $expander.position().top + $expander.outerHeight() < vid.y)) {
+            if ($anchor.position().left >= vid.x && $anchor.position().left <= vid.x + vid.w && ($anchor.position().top > vid.y + vid.h || $anchor.position().top + $anchor.outerHeight() < vid.y)) {
                 vertical = true;
-                if ($expander.position().top > vid.y + vid.h) {
-                    anchorPoint.y = $expander.position().top;
+                if ($anchor.position().top > vid.y + vid.h) {
+                    anchorPoint.y = $anchor.position().top;
                 } else {
-                    anchorPoint.y = $expander.position().top + $expander.outerHeight();
+                    anchorPoint.y = $anchor.position().top + $anchor.outerHeight();
                 }
-                anchorPoint.x = $expander.position().left + $expander.outerWidth() / 2;
+                anchorPoint.x = $anchor.position().left + $anchor.outerWidth() / 2;
             } else {
-                if ($expander.position().left > vid.x + vid.w) {
-                    anchorPoint.x = $expander.position().left;
+                if ($anchor.position().left > vid.x + vid.w) {
+                    anchorPoint.x = $anchor.position().left;
                 } else {
-                    anchorPoint.x = $expander.position().left + $expander.outerWidth();
+                    anchorPoint.x = $anchor.position().left + $anchor.outerWidth();
                 }
-                anchorPoint.y = $expander.position().top + $expander.outerHeight() / 2;
+                anchorPoint.y = $anchor.position().top + $anchor.outerHeight() / 2;
             }
 
             //Solve for the sides of the imaginary triangle so we can angle the pointer
@@ -240,17 +262,21 @@
             //Create the image and add it to this pointer item
             image = null;
             image = drawAngle.call(context, endPoint, midPoint, anchorPoint, currentPoint.color);
-            $(element).parents(context.options.itemSelector).append(image);
+            if (context.options.itemSelector === selector) {
+                $(element).append(image);
+            } else {
+                $(element).parents(context.options.itemSelector).append(image);
+            }
             $(image).css("position", "absolute");
 
             //Place the image at the correct location based on whether the angle is going down or up
             var vOffset = 1;
             var hOffset = 1;
             if ($(image).height() <= 12) {
-                vOffset = (context.options.endPointRadius + context.options.endPointStroke) - Math.abs(anchorPoint.y - endPoint.y);
+                vOffset = (context.options.endPoint.radius + context.options.endPoint.stroke) - Math.abs(anchorPoint.y - endPoint.y);
             }
             if ($(image).width() <= 12) {
-                hOffset = (context.options.endPointRadius + context.options.endPointStroke) - Math.abs(anchorPoint.x - endPoint.x);
+                hOffset = (context.options.endPoint.radius + context.options.endPoint.stroke) - Math.abs(anchorPoint.x - endPoint.x);
             }
             var placement = {
                 left: 0,
@@ -289,7 +315,7 @@
     //Create the images of the angled pointers
     var drawAngle = function(endPoint, midPoint, anchorPoint, color) {
         var image = new Image();
-        var endPointRadius = this.options.endPointRadius;
+        var endPointRadius = this.options.endPoint.radius;
 
         var points = {
             anchor: {},

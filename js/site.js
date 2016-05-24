@@ -2,6 +2,9 @@ $(document).foundation();
 
 $(window).load(function() {
    $("#demo-video-pointer").videopointer({points:[
+       {x:30,y:30,color:"#fff",time:7},
+       {x:20,y:20,color:"#fff",time:8},
+       {x:75,y:75,color:"#fff",time:9},
        {x:25,y:75,color:"#aaa",time:1},
        {x:80,y:80,color:"#aaa",time:2},
        {x:80,y:80,color:"#aaa",time:3},

@@ -57,7 +57,7 @@
         $(window).on("resize", function(event) {
             context.generatePoints.apply(context);
         });
-        $(context.options.videoSelector, this.$element).on("canplay",function(event) {
+        $(context.options.videoSelector, this.$element).on("canplay", function(event) {
             context.generatePoints.apply(context);
         });
     };
@@ -155,8 +155,8 @@
             if (currentPoint === undefined) {
                 return false;
             }
-            
-            var vertical=false;
+
+            var vertical = false;
             //Define points (point on video: endPoint, point at expander icon: anchorPoint, and midPoint)
             var endPoint = {
                 x: 0,
@@ -175,13 +175,24 @@
             endPoint.x = (currentPoint.x / 100) * vid.w + vid.x;
             endPoint.y = (currentPoint.y / 100) * vid.h + vid.y;
 
-            //Find the absolute position of the expander icon on the page
-            var $expander = $(element);
-            anchorPoint.x = $expander.position().left;
-            anchorPoint.y = $expander.position().top + $expander.outerHeight() / 2;
+            
+            var $expander = $(element);            
             //If the pointer is originating from above or below the video then make the line go vertical before horizontal
-            if( $expander.position().left >= vid.x && $expander.position().left <= vid.x + vid.w && ($expander.position().top > vid.y + vid.h || $expander.position().top + $expander.outerHeight() < vid.y)) {
-                vertical=true;
+            if ($expander.position().left >= vid.x && $expander.position().left <= vid.x + vid.w && ($expander.position().top > vid.y + vid.h || $expander.position().top + $expander.outerHeight() < vid.y)) {
+                vertical = true;
+                if($expander.position().top > vid.y + vid.h) {
+                    anchorPoint.y = $expander.position().top;
+                } else {
+                    anchorPoint.y = $expander.position().top + $expander.outerHeight();
+                }
+                anchorPoint.x = $expander.position().left + $expander.outerWidth() / 2;
+            } else {
+                if($expander.position().left > vid.x + vid.w) {
+                    anchorPoint.x = $expander.position().left;
+                } else {
+                    anchorPoint.x = $expander.position().left + $expander.outerWidth();
+                }
+                anchorPoint.y = $expander.position().top + $expander.outerHeight() / 2;
             }
 
             //Solve for the sides of the imaginary triangle so we can angle the pointer
@@ -195,14 +206,14 @@
                 b: 0,
                 c: 0
             };
-            if(vertical) {
-                sides.a=Math.abs(endPoint.x - anchorPoint.x);
+            if (vertical) {
+                sides.a = Math.abs(endPoint.x - anchorPoint.x);
             }
             sides.b = sides.a * Math.sin(Math.radians(angles.B)) / Math.sin(Math.radians(angles.A));
             sides.c = sides.a * Math.sin(Math.radians(angles.C)) / Math.sin(Math.radians(angles.A));
-            
-            if(vertical) {
-                if(endPoint.y > anchorPoint.y) {
+
+            if (vertical) {
+                if (endPoint.y > anchorPoint.y) {
                     midPoint.y = endPoint.y - sides.c;
                 } else {
                     midPoint.y = endPoint.y + sides.c;
@@ -213,8 +224,8 @@
                 }
                 midPoint.x = anchorPoint.x;
             } else {
-                if(endPoint.x > anchorPoint.x) {
-                    midPoint.x = endPoint.x - sides.c;  
+                if (endPoint.x > anchorPoint.x) {
+                    midPoint.x = endPoint.x - sides.c;
                 } else {
                     midPoint.x = endPoint.x + sides.c;
                 }
@@ -224,31 +235,48 @@
                 }
                 midPoint.y = anchorPoint.y;
             }
-            
+
 
             //Create the image and add it to this pointer item
             image = null;
             image = drawAngle.call(context, endPoint, midPoint, anchorPoint, currentPoint.color);
             $(element).parents(context.options.itemSelector).append(image);
-            $(image).css("position","absolute");
+            $(image).css("position", "absolute");
 
             //Place the image at the correct location based on whether the angle is going down or up
             var vOffset = 1;
+            var hOffset = 1;
             if ($(image).height() <= 12) {
                 vOffset = (context.options.endPointRadius + context.options.endPointStroke) - Math.abs(anchorPoint.y - endPoint.y);
             }
-            
-            if(endPoint.x > anchorPoint.x) {
-                $(image).css({"left": anchorPoint.x + "px"});
-            } else {
-                $(image).css({"left": anchorPoint.x - image.width + "px"});
+            if($(image).width() <= 12) {
+                hOffset = (context.options.endPointRadius + context.options.endPointStroke) - Math.abs(anchorPoint.x - endPoint.x);
             }
-            if (endPoint.y > anchorPoint.y) {
-                $(image).css({"top": anchorPoint.y - vOffset + "px"});
+            var placement={left:0,top:0};
+            if(vertical) {
+                if(endPoint.x > anchorPoint.x) {
+                    placement.left=anchorPoint.x;
+                } else {
+                    placement.left=anchorPoint.x - image.width;
+                }
+                if(endPoint.y > anchorPoint.y) {
+                    placement.top=anchorPoint.y - vOffset;
+                } else {
+                    placement.top=anchorPoint.y - image.height + vOffset;
+                }
             } else {
-                $(image).css({"top": anchorPoint.y - image.height + vOffset + "px"});
+                if(endPoint.x > anchorPoint.x) {
+                    placement.left=anchorPoint.x;
+                } else {
+                    placement.left=anchorPoint.x - image.width;
+                }
+                if(endPoint.y > anchorPoint.y) {
+                    placement.top=anchorPoint.y - vOffset;
+                } else {
+                    placement.top=anchorPoint.y - image.height + vOffset;
+                }
             }
-            $(image).addClass("pointer");
+            $(image).css({"top":placement.top + "px","left":placement.left + "px"}).addClass("pointer");
         });
     };
 
@@ -256,11 +284,15 @@
     var drawAngle = function(endPoint, midPoint, anchorPoint, color) {
         var image = new Image();
         var endPointRadius = this.options.endPointRadius;
-        
-        var points={anchor:{},mid:{},end:{}};
-        
-        var vertical = (anchorPoint.x===midPoint.x && anchorPoint.y!==midPoint.y);
-        
+
+        var points = {
+            anchor: {},
+            mid: {},
+            end: {}
+        };
+
+        var vertical = (anchorPoint.x === midPoint.x && anchorPoint.y !== midPoint.y);
+
         //Get 
         var dims = {
             w: Math.ceil(Math.abs(anchorPoint.x - endPoint.x) + endPointRadius + 6),
@@ -282,30 +314,30 @@
             }
         }
         //Pointer coming from right or left?
-        if(endPoint.x > anchorPoint.x) {
-            points.anchor.x=1;
-            points.mid.x=midPoint.x - anchorPoint.x + 1;
-            points.end.x=endPoint.x - anchorPoint.x + 1;
+        if (endPoint.x > anchorPoint.x) {
+            points.anchor.x = 1;
+            points.mid.x = midPoint.x - anchorPoint.x + 1;
+            points.end.x = endPoint.x - anchorPoint.x + 1;
         } else {
-            points.anchor.x=dims.w - 1;
-            points.mid.x=dims.w - (anchorPoint.x - midPoint.x) - 1;
-            points.end.x=dims.w - (anchorPoint.x - endPoint.x) - 1;
+            points.anchor.x = dims.w - 1;
+            points.mid.x = dims.w - (anchorPoint.x - midPoint.x) - 1;
+            points.end.x = dims.w - (anchorPoint.x - endPoint.x) - 1;
         }
         //Pointer coming from top or bottom?
         if (endPoint.y > anchorPoint.y) {
-            points.anchor.y=1;
-            points.mid.y=midPoint.y - anchorPoint.y + 1;
-            points.end.y=endPoint.y - anchorPoint.y + 1;
+            points.anchor.y = 1;
+            points.mid.y = midPoint.y - anchorPoint.y + 1;
+            points.end.y = endPoint.y - anchorPoint.y + 1;
         } else if (anchorPoint.y > endPoint.y) {
-            points.anchor.y=dims.h - vOffset - 1;            
-            points.mid.y=points.anchor.y - (anchorPoint.y - midPoint.y) - vOffset - 1;            
-            points.end.y=dims.h - (anchorPoint.y - endPoint.y) - vOffset - 1;
+            points.anchor.y = dims.h - vOffset - 1;
+            points.mid.y = points.anchor.y - (anchorPoint.y - midPoint.y) - vOffset - 1;
+            points.end.y = dims.h - (anchorPoint.y - endPoint.y) - vOffset - 1;
         }
-        
-        drawLine(drawing,points.anchor,points.mid,2,this.options.lineColor);
-        drawLine(drawing,points.mid,points.end,2,this.options.lineColor);
-        drawCircle(drawing,points.end,endPointRadius,2,color,this.options.lineColor);
-        
+
+        drawLine(drawing, points.anchor, points.mid, 2, this.options.lineColor);
+        drawLine(drawing, points.mid, points.end, 2, this.options.lineColor);
+        drawCircle(drawing, points.end, endPointRadius, 2, color, this.options.lineColor);
+
         image.src = canvas.toDataURL("image/png");
         return image;
     };

@@ -342,6 +342,7 @@
         canvas.width = dims.w;
         //Get the element for drawing
         var drawing = canvas.getContext("2d");
+        drawing.translate(0.5, 0.5);
 
         //Add an offset if the vertical difference in points is minimal
         var vOffset = 0;

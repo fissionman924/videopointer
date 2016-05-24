@@ -31,16 +31,18 @@
         endPoint: {
             radius: 4,
             stroke: 2,
-            style: "circle",
-            strokeColor: "#fff",
-            fillColor: "#fff"
-        },
-        anchorPoint: {
-            radius: 0,
-            stroke: 0,
             style: "none",
             strokeColor: "#fff",
-            fillColor: "#fff"
+            fillColor: "#fff",
+            url: ""
+        },
+        anchorPoint: {
+            radius: 4,
+            stroke: 2,
+            style: "none",
+            strokeColor: "#fff",
+            fillColor: "#fff",
+            url: ""
         },
         videoSelector: "video",
         itemSelector: ".pointer-item",
@@ -258,10 +260,14 @@
                 midPoint.y = anchorPoint.y;
             }
 
-
+            //Get the color for the point
+            var color = context.options.endPoint.fillColor;
+            if (currentPoint.color !== undefined) {
+                color = currentPoint.color;
+            }
             //Create the image and add it to this pointer item
             image = null;
-            image = drawAngle.call(context, endPoint, midPoint, anchorPoint, currentPoint.color);
+            image = drawAngle.call(context, endPoint, midPoint, anchorPoint, color);
             if (context.options.itemSelector === selector) {
                 $(element).append(image);
             } else {
@@ -348,27 +354,31 @@
         //Pointer coming from right or left?
         if (endPoint.x > anchorPoint.x) {
             points.anchor.x = 1;
-            points.mid.x = midPoint.x - anchorPoint.x + 1;
-            points.end.x = endPoint.x - anchorPoint.x + 1;
+            points.mid.x = Math.ceil(midPoint.x - anchorPoint.x + 1);
+            points.end.x = Math.ceil(endPoint.x - anchorPoint.x + 1);
         } else {
-            points.anchor.x = dims.w - 1;
-            points.mid.x = dims.w - (anchorPoint.x - midPoint.x) - 1;
-            points.end.x = dims.w - (anchorPoint.x - endPoint.x) - 1;
+            points.anchor.x = Math.ceil(dims.w - 1);
+            points.mid.x = Math.ceil(dims.w - (anchorPoint.x - midPoint.x) - 1);
+            points.end.x = Math.ceil(dims.w - (anchorPoint.x - endPoint.x) - 1);
         }
         //Pointer coming from top or bottom?
         if (endPoint.y > anchorPoint.y) {
             points.anchor.y = 1;
-            points.mid.y = midPoint.y - anchorPoint.y + 1;
-            points.end.y = endPoint.y - anchorPoint.y + 1;
+            points.mid.y = Math.ceil(midPoint.y - anchorPoint.y + 1);
+            points.end.y = Math.ceil(endPoint.y - anchorPoint.y + 1);
         } else if (anchorPoint.y > endPoint.y) {
-            points.anchor.y = dims.h - vOffset - 1;
-            points.mid.y = points.anchor.y - (anchorPoint.y - midPoint.y) - vOffset - 1;
-            points.end.y = dims.h - (anchorPoint.y - endPoint.y) - vOffset - 1;
+            points.anchor.y = Math.ceil(dims.h - vOffset - 1);
+            points.mid.y = Math.ceil(points.anchor.y - (anchorPoint.y - midPoint.y) - vOffset - 1);
+            points.end.y = Math.ceil(dims.h - (anchorPoint.y - endPoint.y) - vOffset - 1);
         }
 
-        drawLine(drawing, points.anchor, points.mid, 2, this.options.lineColor);
-        drawLine(drawing, points.mid, points.end, 2, this.options.lineColor);
-        drawCircle(drawing, points.end, endPointRadius, 2, color, this.options.lineColor);
+        drawLine(drawing, points.anchor, points.mid, this.options.line.width, this.options.line.color);
+        drawLine(drawing, points.mid, points.end, this.options.line.width, this.options.line.color);
+        if (this.options.endPoint.style === "circle") {
+            drawCircle(drawing, points.end, endPointRadius, this.options.endPoint.stroke, color, this.options.endPoint.strokeColor);
+        } else if (this.options.endPoint.style === "square") {
+            drawSquare(drawing, points.end, endPointRadius, this.options.endPoint.stroke, color, this.options.endPoint.strokeColor);
+        }
 
         image.src = canvas.toDataURL("image/png");
         return image;
@@ -389,12 +399,45 @@
         canvas.fillStyle = bgColor;
         canvas.lineWidth = strokeWidth;
         canvas.arc(position.x, position.y, radius, 0, 2 * Math.PI, false);
-        canvas.stroke();
+        if (strokeWidth > 0) {
+            canvas.stroke();
+        }
         canvas.fill();
     };
 
+    var drawSquare = function(canvas, position, side, strokeWidth, bgColor, strokeColor) {
+        canvas.beginPath();
+        canvas.strokeStyle = strokeColor;
+        canvas.fillStyle = bgColor;
+        canvas.lineWidth = strokeWidth;
+        if (strokeWidth > 0) {
+            canvas.rect(position.x - side / 2, position.y - side / 2, side, side);
+            canvas.stroke();
+        }
+        canvas.fillRect(position.x - side / 2, position.y - side / 2, side, side);
+    };
+
     VideoPointer.prototype.getOptions = function(options) {
+        var line, endPoint, anchorPoint;
+        if (options.line !== undefined) {
+            line = $.extend({}, this.getDefaults().line, options.line);
+        }
+        if (options.endPoint !== undefined) {
+            endPoint = $.extend({}, this.getDefaults().endPoint, options.endPoint);
+        }
+        if (options.anchorPoint !== undefined) {
+            anchorPoint = $.extend({}, this.getDefaults().anchorPoint, options.anchorPoint);
+        }
         var opts = $.extend({}, this.getDefaults(), this.$element.data(), options);
+        if (line !== undefined) {
+            opts.line = line;
+        }
+        if (endPoint !== undefined) {
+            opts.endPoint = endPoint;
+        }
+        if (anchorPoint !== undefined) {
+            opts.anchorPoint = anchorPoint;
+        }
         return opts;
     };
 

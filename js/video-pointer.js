@@ -155,8 +155,9 @@
             if (currentPoint === undefined) {
                 return false;
             }
-
-            //Define points (point on video: pointA, point at expander icon: pointB, and midPoint)
+            
+            var vertical=false;
+            //Define points (point on video: endPoint, point at expander icon: anchorPoint, and midPoint)
             var endPoint = {
                 x: 0,
                 y: 0
@@ -178,6 +179,10 @@
             var $expander = $(element);
             anchorPoint.x = $expander.position().left;
             anchorPoint.y = $expander.position().top + $expander.outerHeight() / 2;
+            //If the pointer is originating from above or below the video then make the line go vertical before horizontal
+            if( $expander.position().left >= vid.x && $expander.position().left <= vid.x + vid.w && ($expander.position().top > vid.y + vid.h || $expander.position().top + $expander.outerHeight() < vid.y)) {
+                vertical=true;
+            }
 
             //Solve for the sides of the imaginary triangle so we can angle the pointer
             var angles = {
@@ -190,20 +195,36 @@
                 b: 0,
                 c: 0
             };
+            if(vertical) {
+                sides.a=Math.abs(endPoint.x - anchorPoint.x);
+            }
             sides.b = sides.a * Math.sin(Math.radians(angles.B)) / Math.sin(Math.radians(angles.A));
             sides.c = sides.a * Math.sin(Math.radians(angles.C)) / Math.sin(Math.radians(angles.A));
             
-            if(endPoint.x > anchorPoint.x) {
-                midPoint.x = endPoint.x - sides.c;  
+            if(vertical) {
+                if(endPoint.y > anchorPoint.y) {
+                    midPoint.y = endPoint.y - sides.c;
+                } else {
+                    midPoint.y = endPoint.y + sides.c;
+                }
+                //Determine if we can stick with the predefined angle or if we need to switch to a 90 degree angle based on proximity
+                if (Math.abs(endPoint.y - anchorPoint.y) < Math.abs(endPoint.x - anchorPoint.x)) {
+                    midPoint.y = endPoint.y;
+                }
+                midPoint.x = anchorPoint.x;
             } else {
-                midPoint.x = endPoint.x + sides.c;
-            }
-            //Determine if we can stick with the predefined angle or if we need to switch to a 90 degree angle based on proximity
-            if (Math.abs(endPoint.x - anchorPoint.x) < Math.abs(endPoint.y - anchorPoint.y)) {
-                midPoint.x = endPoint.x;
+                if(endPoint.x > anchorPoint.x) {
+                    midPoint.x = endPoint.x - sides.c;  
+                } else {
+                    midPoint.x = endPoint.x + sides.c;
+                }
+                //Determine if we can stick with the predefined angle or if we need to switch to a 90 degree angle based on proximity
+                if (Math.abs(endPoint.x - anchorPoint.x) < Math.abs(endPoint.y - anchorPoint.y)) {
+                    midPoint.x = endPoint.x;
+                }
+                midPoint.y = anchorPoint.y;
             }
             
-            midPoint.y = anchorPoint.y;
 
             //Create the image and add it to this pointer item
             image = null;
@@ -242,6 +263,8 @@
         
         var points={anchor:{},mid:{},end:{}};
         
+        var vertical = (anchorPoint.x===midPoint.x && anchorPoint.y!==midPoint.y);
+        
         //Get 
         var dims = {
             w: Math.ceil(Math.abs(anchorPoint.x - endPoint.x) + endPointRadius + 6),
@@ -265,12 +288,12 @@
         //Pointer coming from right or left?
         if(endPoint.x > anchorPoint.x) {
             points.anchor.x=1;
-            points.mid.x=midPoint.x - anchorPoint.x;
-            points.end.x=endPoint.x - anchorPoint.x;
+            points.mid.x=midPoint.x - anchorPoint.x + 1;
+            points.end.x=endPoint.x - anchorPoint.x + 1;
         } else {
-            points.anchor.x=dims.w;
-            points.mid.x=dims.w - (anchorPoint.x - midPoint.x);
-            points.end.x=dims.w - (anchorPoint.x - endPoint.x);
+            points.anchor.x=dims.w - 1;
+            points.mid.x=dims.w - (anchorPoint.x - midPoint.x) - 1;
+            points.end.x=dims.w - (anchorPoint.x - endPoint.x) - 1;
         }
         //Pointer coming from top or bottom?
         if (endPoint.y > anchorPoint.y) {
@@ -279,8 +302,8 @@
             points.end.y=endPoint.y - midPoint.y;
         } else if (anchorPoint.y > endPoint.y) {
             points.anchor.y=dims.h - vOffset - 1;            
-            points.mid.y=dims.h - vOffset - 1;            
-            points.end.y=dims.h - (midPoint.y - endPoint.y) - vOffset - 1;
+            points.mid.y=points.anchor.y - (anchorPoint.y - midPoint.y) - vOffset - 1;            
+            points.end.y=dims.h - (anchorPoint.y - endPoint.y) - vOffset - 1;
         }
         
         drawLine(drawing,points.anchor,points.mid,2,this.options.lineColor);

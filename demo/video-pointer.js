@@ -175,13 +175,24 @@
             endPoint.x = (currentPoint.x / 100) * vid.w + vid.x;
             endPoint.y = (currentPoint.y / 100) * vid.h + vid.y;
 
-            //Find the absolute position of the expander icon on the page
+
             var $expander = $(element);
-            anchorPoint.x = $expander.position().left;
-            anchorPoint.y = $expander.position().top + $expander.outerHeight() / 2;
             //If the pointer is originating from above or below the video then make the line go vertical before horizontal
             if ($expander.position().left >= vid.x && $expander.position().left <= vid.x + vid.w && ($expander.position().top > vid.y + vid.h || $expander.position().top + $expander.outerHeight() < vid.y)) {
                 vertical = true;
+                if ($expander.position().top > vid.y + vid.h) {
+                    anchorPoint.y = $expander.position().top;
+                } else {
+                    anchorPoint.y = $expander.position().top + $expander.outerHeight();
+                }
+                anchorPoint.x = $expander.position().left + $expander.outerWidth() / 2;
+            } else {
+                if ($expander.position().left > vid.x + vid.w) {
+                    anchorPoint.x = $expander.position().left;
+                } else {
+                    anchorPoint.x = $expander.position().left + $expander.outerWidth();
+                }
+                anchorPoint.y = $expander.position().top + $expander.outerHeight() / 2;
             }
 
             //Solve for the sides of the imaginary triangle so we can angle the pointer
@@ -234,29 +245,44 @@
 
             //Place the image at the correct location based on whether the angle is going down or up
             var vOffset = 1;
+            var hOffset = 1;
             if ($(image).height() <= 12) {
                 vOffset = (context.options.endPointRadius + context.options.endPointStroke) - Math.abs(anchorPoint.y - endPoint.y);
             }
-
-            if (endPoint.x > anchorPoint.x) {
-                $(image).css({
-                    "left": anchorPoint.x + "px"
-                });
-            } else {
-                $(image).css({
-                    "left": anchorPoint.x - image.width + "px"
-                });
+            if ($(image).width() <= 12) {
+                hOffset = (context.options.endPointRadius + context.options.endPointStroke) - Math.abs(anchorPoint.x - endPoint.x);
             }
-            if (endPoint.y > anchorPoint.y) {
-                $(image).css({
-                    "top": anchorPoint.y - vOffset + "px"
-                });
+            var placement = {
+                left: 0,
+                top: 0
+            };
+            if (vertical) {
+                if (endPoint.x > anchorPoint.x) {
+                    placement.left = anchorPoint.x;
+                } else {
+                    placement.left = anchorPoint.x - image.width;
+                }
+                if (endPoint.y > anchorPoint.y) {
+                    placement.top = anchorPoint.y - vOffset;
+                } else {
+                    placement.top = anchorPoint.y - image.height + vOffset;
+                }
             } else {
-                $(image).css({
-                    "top": anchorPoint.y - image.height + vOffset + "px"
-                });
+                if (endPoint.x > anchorPoint.x) {
+                    placement.left = anchorPoint.x;
+                } else {
+                    placement.left = anchorPoint.x - image.width;
+                }
+                if (endPoint.y > anchorPoint.y) {
+                    placement.top = anchorPoint.y - vOffset;
+                } else {
+                    placement.top = anchorPoint.y - image.height + vOffset;
+                }
             }
-            $(image).addClass("pointer");
+            $(image).css({
+                "top": placement.top + "px",
+                "left": placement.left + "px"
+            }).addClass("pointer");
         });
     };
 

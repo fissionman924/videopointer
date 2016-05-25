@@ -139,12 +139,7 @@
         var redraw = false;
         //Get location and dimensions for the video container
         var $vid = $(context.options.videoSelector, this.$element);
-        var vid = {
-            x: $vid.position().left,
-            y: $vid.position().top,
-            w: $vid.width(),
-            h: $vid.height()
-        };
+        var vid = getDims($vid);
         var items = [];
         var selector = context.options.anchorSelector;
         if ($(selector, this.$element).length === 0) {
@@ -152,12 +147,7 @@
         }
         $(selector, this.$element).each(function(index, element) {
             var $item = $(element);
-            var item = {
-                x: $item.position().left,
-                y: $item.position().top,
-                w: $item.width(),
-                h: $item.outerHeight()
-            };
+            var item = getDims($item);
             items.push(item);
         });
         //Check to see if there are any changes in the size or position of the key elements
@@ -201,8 +191,9 @@
             endPoint.y = (currentPoint.y / 100) * vid.h + vid.y;
 
             var $anchor = $(element);
+            var anchor = getDims($anchor);
             //If the pointer is originating from above or below the video then make the line go vertical before horizontal
-            if ($anchor.position().left >= vid.x && $anchor.position().left <= vid.x + vid.w && ($anchor.position().top > vid.y + vid.h || $anchor.position().top + $anchor.outerHeight() < vid.y)) {
+            if (isVertical(vid, anchor)) {
                 vertical = true;
                 if ($anchor.position().top > vid.y + vid.h) {
                     anchorPoint.y = $anchor.position().top;
@@ -219,55 +210,20 @@
                 anchorPoint.y = $anchor.position().top + $anchor.outerHeight() / 2;
             }
 
-            //Solve for the sides of the imaginary triangle so we can angle the pointer
-            var angles = {
-                A: angle,
-                B: 90,
-                C: 180 - angle - 90
-            };
-            var sides = {
-                a: Math.abs(endPoint.y - anchorPoint.y),
-                b: 0,
-                c: 0
-            };
-            if (vertical) {
-                sides.a = Math.abs(endPoint.x - anchorPoint.x);
-            }
-            sides.b = sides.a * Math.sin(Math.radians(angles.B)) / Math.sin(Math.radians(angles.A));
-            sides.c = sides.a * Math.sin(Math.radians(angles.C)) / Math.sin(Math.radians(angles.A));
-
-            if (vertical) {
-                if (endPoint.y > anchorPoint.y) {
-                    midPoint.y = endPoint.y - sides.c;
-                } else {
-                    midPoint.y = endPoint.y + sides.c;
-                }
-                //Determine if we can stick with the predefined angle or if we need to switch to a 90 degree angle based on proximity
-                if (Math.abs(endPoint.y - anchorPoint.y) < Math.abs(endPoint.x - anchorPoint.x)) {
-                    midPoint.y = endPoint.y;
-                }
-                midPoint.x = anchorPoint.x;
-            } else {
-                if (endPoint.x > anchorPoint.x) {
-                    midPoint.x = endPoint.x - sides.c;
-                } else {
-                    midPoint.x = endPoint.x + sides.c;
-                }
-                //Determine if we can stick with the predefined angle or if we need to switch to a 90 degree angle based on proximity
-                if (Math.abs(endPoint.x - anchorPoint.x) < Math.abs(endPoint.y - anchorPoint.y)) {
-                    midPoint.x = endPoint.x;
-                }
-                midPoint.y = anchorPoint.y;
-            }
-
             //Get the color for the point
             var color = context.options.endPoint.fillColor;
             if (currentPoint.color !== undefined) {
                 color = currentPoint.color;
             }
+
+            if (context.options.line.style === "straight") {
+                $.extend(midPoint, anchorPoint);
+            } else {
+                midPoint = calculateAngle(anchorPoint, endPoint, angle, vertical);
+            }
+            image = drawImage.call(context, context.options.line.style, endPoint, midPoint, anchorPoint, color);
+
             //Create the image and add it to this pointer item
-            image = null;
-            image = drawAngle.call(context, endPoint, midPoint, anchorPoint, color);
             if (context.options.itemSelector === selector) {
                 $(element).append(image);
             } else {
@@ -318,8 +274,74 @@
         });
     };
 
+    var getDims = function($elem) {
+        var dims = {
+            x: $elem.position().left,
+            y: $elem.position().top,
+            w: $elem.outerWidth(),
+            h: $elem.outerHeight()
+        };
+        return dims;
+    };
+
+    var isVertical = function(vid, anchor) {
+        var vertical = false;
+        if (anchor.x >= vid.x && anchor.x <= vid.x + vid.w && (anchor.y > vid.y + vid.h || anchor.y + anchor.h < vid.y)) {
+            vertical = true;
+        }
+        return vertical;
+    };
+
+    var calculateAngle = function(anchorPoint, endPoint, angle, vertical) {
+        var midPoint = {
+            x: 0,
+            y: 0
+        };
+        //Solve for the sides of the imaginary triangle so we can angle the pointer
+        var angles = {
+            A: angle,
+            B: 90,
+            C: 180 - angle - 90
+        };
+        var sides = {
+            a: Math.abs(endPoint.y - anchorPoint.y),
+            b: 0,
+            c: 0
+        };
+        if (vertical) {
+            sides.a = Math.abs(endPoint.x - anchorPoint.x);
+        }
+        sides.b = sides.a * Math.sin(Math.radians(angles.B)) / Math.sin(Math.radians(angles.A));
+        sides.c = sides.a * Math.sin(Math.radians(angles.C)) / Math.sin(Math.radians(angles.A));
+
+        if (vertical) {
+            if (endPoint.y > anchorPoint.y) {
+                midPoint.y = endPoint.y - sides.c;
+            } else {
+                midPoint.y = endPoint.y + sides.c;
+            }
+            //Determine if we can stick with the predefined angle or if we need to switch to a 90 degree angle based on proximity
+            if (Math.abs(endPoint.y - anchorPoint.y) < Math.abs(endPoint.x - anchorPoint.x)) {
+                midPoint.y = endPoint.y;
+            }
+            midPoint.x = anchorPoint.x;
+        } else {
+            if (endPoint.x > anchorPoint.x) {
+                midPoint.x = endPoint.x - sides.c;
+            } else {
+                midPoint.x = endPoint.x + sides.c;
+            }
+            //Determine if we can stick with the predefined angle or if we need to switch to a 90 degree angle based on proximity
+            if (Math.abs(endPoint.x - anchorPoint.x) < Math.abs(endPoint.y - anchorPoint.y)) {
+                midPoint.x = endPoint.x;
+            }
+            midPoint.y = anchorPoint.y;
+        }
+        return midPoint;
+    };
+
     //Create the images of the angled pointers
-    var drawAngle = function(endPoint, midPoint, anchorPoint, color) {
+    var drawImage = function(style, endPoint, midPoint, anchorPoint, color) {
         var image = new Image();
         var endPointRadius = this.options.endPoint.radius;
 
@@ -342,7 +364,14 @@
         canvas.width = dims.w;
         //Get the element for drawing
         var drawing = canvas.getContext("2d");
-        drawing.translate(0.5, 0.5);
+        //For crisp lines adjust the canvas if the line width is an odd number
+        if (Math.floor(this.options.line.width) % 2 === 1) {
+            var yTranslation = 0.5;
+            if (endPoint.y < anchorPoint.y) {
+                yTranslation = -0.5;
+            }
+            drawing.translate(0.5, yTranslation);
+        }
 
         //Add an offset if the vertical difference in points is minimal
         var vOffset = 0;
@@ -372,9 +401,67 @@
             points.mid.y = Math.ceil(points.anchor.y - (anchorPoint.y - midPoint.y) - vOffset - 1);
             points.end.y = Math.ceil(dims.h - (anchorPoint.y - endPoint.y) - vOffset - 1);
         }
-
-        drawLine(drawing, points.anchor, points.mid, this.options.line.width, this.options.line.color);
-        drawLine(drawing, points.mid, points.end, this.options.line.width, this.options.line.color);
+        if (style === "angled") {
+            drawLine(drawing, [points.anchor, points.mid, points.end], this.options.line.width, this.options.line.color);
+        } else if (style === "straight") {
+            drawLine(drawing, [points.anchor, points.end], this.options.line.width, this.options.line.color);
+        } else if (style === "curved") {
+            var borderRadius = 100;
+            //If it's a right angle then replace the midpoint with two points that create a right angle
+            var shortA = {
+                    x: 0,
+                    y: 0
+                },
+                shortB = {
+                    x: 0,
+                    y: 0
+                };
+            if (points.mid.x === points.anchor.x && points.mid.y === points.end.y) {
+                shortA.x = points.anchor.x;
+                shortB.y = points.end.y;
+                //Make sure border radius is an adequate size
+                if (borderRadius > points.mid.y) {
+                    borderRadius = points.mid.y;
+                }
+                if (Math.abs(points.mid.x - points.end.x) < borderRadius) {
+                    borderRadius = Math.abs(points.mid.x - points.end.x);
+                }
+                if (points.anchor.y < points.end.y) {
+                    shortA.y = points.mid.y - borderRadius;
+                } else {
+                    shortA.y = points.mid.y - borderRadius;
+                }
+                if (points.anchor.x > points.end.x) {
+                    shortB.x = points.mid.x - borderRadius;
+                } else {
+                    shortB.x = points.mid.x + borderRadius;
+                }
+                drawCurve(drawing, [points.anchor, shortA, shortB, points.end], this.options.line.width, this.options.line.color, vertical);
+            } else if (points.mid.y === points.anchor.y && points.mid.x === points.end.x) {
+                shortA.y = points.anchor.y;
+                shortB.x = points.end.x;
+                //Set Border Radius to proper bounds
+                if (borderRadius > points.mid.x) {
+                    borderRadius = points.mid.x;
+                }
+                if (Math.abs(points.mid.y - points.end.y) < borderRadius) {
+                    borderRadius = Math.abs(points.mid.y - points.end.y);
+                }
+                if (points.anchor.x < points.end.x) {
+                    shortA.x = points.mid.x - borderRadius;
+                } else {
+                    shortA.x = points.mid.x + borderRadius;
+                }
+                if (points.anchor.y > points.end.y) {
+                    shortB.y = points.mid.y - borderRadius;
+                } else {
+                    shortB.y = points.mid.y + borderRadius;
+                }
+                drawCurve(drawing, [points.anchor, shortA, shortB, points.end], this.options.line.width, this.options.line.color, vertical);
+            } else {
+                drawCurve(drawing, [points.anchor, points.mid, points.end], this.options.line.width, this.options.line.color, vertical);
+            }
+        }
         if (this.options.endPoint.style === "circle") {
             drawCircle(drawing, points.end, endPointRadius, this.options.endPoint.stroke, color, this.options.endPoint.strokeColor);
         } else if (this.options.endPoint.style === "square") {
@@ -385,12 +472,48 @@
         return image;
     };
 
-    var drawLine = function(canvas, from, to, width, color) {
+    var drawCurve = function(canvas, points, width, color, vertical) {
         canvas.beginPath();
         canvas.strokeStyle = color;
         canvas.lineWidth = width;
-        canvas.moveTo(from.x, from.y);
-        canvas.lineTo(to.x, to.y);
+        canvas.moveTo(points[0].x, points[0].y);
+        var point = {
+                x: 0,
+                y: 0
+            },
+            control = {
+                x: 0,
+                y: 0
+            },
+            pointBefore = {
+                x: 0,
+                y: 0
+            };
+        for (var i = 1; i < points.length; i++) {
+            point = points[i];
+            pointBefore = points[i - 1];
+            if (vertical) {
+                control.x = pointBefore.x;
+                control.y = point.y;
+            } else {
+                control.x = point.x;
+                control.y = pointBefore.y;
+            }
+            canvas.quadraticCurveTo(control.x, control.y, point.x, point.y);
+        }
+        canvas.stroke();
+    };
+
+    var drawLine = function(canvas, points, width, color) {
+        canvas.beginPath();
+        canvas.strokeStyle = color;
+        canvas.lineWidth = width;
+        canvas.moveTo(points[0].x, points[0].y);
+        var point;
+        for (var i = 1; i < points.length; i++) {
+            point = points[i];
+            canvas.lineTo(point.x, point.y);
+        }
         canvas.stroke();
     };
 

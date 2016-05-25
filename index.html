@@ -129,6 +129,12 @@
                         <td>See endPoint Reference</td>
                         <td>An object containing properties that control how the end point looks.</td>
                     </tr>
+                    <tr>
+                        <td>anchorPoint</td>
+                        <td>Object</td>
+                        <td>See anchorPoint Reference</td>
+                        <td>An object containing properties that control how the anchor point looks.</td>
+                    </tr>
                 </tbody>
             </table>
             <h3>points</h3>
@@ -155,16 +161,28 @@
                         <td>Vertical location of the end point as a percent of the video container height.</td>
                     </tr>
                     <tr>
-                        <td>color</td>
-                        <td>String</td>
-                        <td>"#000"</td>
-                        <td>The color of the fill for the end point.</td>
-                    </tr>
-                    <tr>
                         <td>time</td>
                         <td>Number</td>
                         <td>0</td>
                         <td>The number of seconds into the video that the point references.</td>
+                    </tr>
+                    <tr>
+                        <td>line</td>
+                        <td>Object</td>
+                        <td>See line Reference</td>
+                        <td>An object containing properties that control how the line looks.</td>
+                    </tr>
+                    <tr>
+                        <td>endPoint</td>
+                        <td>Object</td>
+                        <td>See endPoint Reference</td>
+                        <td>An object containing properties that control how the end point looks.</td>
+                    </tr>
+                    <tr>
+                        <td>anchorPoint</td>
+                        <td>Object</td>
+                        <td>See anchorPoint Reference</td>
+                        <td>An object containing properties that control how the anchor point looks.</td>
                     </tr>
                 </tbody>
             </table>
@@ -220,13 +238,13 @@
                         <td>style</td>
                         <td>String</td>
                         <td>"none"</td>
-                        <td>The style of the end point. Current options are "none","circle", and "square"</td>
+                        <td>The style of the end point. Current options are "none","circle","square", and "image"</td>
                     </tr>
                     <tr>
                         <td>radius</td>
                         <td>Number</td>
                         <td>4</td>
-                        <td>The radius of the circle of side length of the square</td>
+                        <td>The radius of the circle or square</td>
                     </tr>
                     <tr>
                         <td>stroke</td>
@@ -245,6 +263,61 @@
                         <td>String</td>
                         <td>"#fff"</td>
                         <td>The default color for the fill of the endpoint</td>
+                    </tr>
+                    <tr>
+                        <td>url</td>
+                        <td>String</td>
+                        <td>""</td>
+                        <td>The url of the image you want to use for the endpoint</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3>anchorPoint</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>style</td>
+                        <td>String</td>
+                        <td>"none"</td>
+                        <td>The style of the anchor point. Current options are "none","circle","square", and "image"</td>
+                    </tr>
+                    <tr>
+                        <td>radius</td>
+                        <td>Number</td>
+                        <td>4</td>
+                        <td>The radius of the circle or square</td>
+                    </tr>
+                    <tr>
+                        <td>stroke</td>
+                        <td>Number</td>
+                        <td>2</td>
+                        <td>The width of the outline.</td>
+                    </tr>
+                    <tr>
+                        <td>strokeColor</td>
+                        <td>String</td>
+                        <td>"#fff"</td>
+                        <td>The default color for the border of the anchor point</td>
+                    </tr>
+                    <tr>
+                        <td>fillColor</td>
+                        <td>String</td>
+                        <td>"#fff"</td>
+                        <td>The default color for the fill of the anchor point</td>
+                    </tr>
+                    <tr>
+                        <td>url</td>
+                        <td>String</td>
+                        <td>""</td>
+                        <td>The url of the image you want to use for the anchor point</td>
                     </tr>
                 </tbody>
             </table>

@@ -16,6 +16,8 @@
         this.init(element, options);
     };
 
+    var images = {};
+
     //Plugin defaults - Can be overridden in the properties passed into the plugin
     VideoPointer.DEFAULTS = {
         initialized: false,
@@ -29,16 +31,16 @@
             angle: 45
         },
         endPoint: {
-            radius: 4,
-            stroke: 2,
+            radius: 0,
+            stroke: 0,
             style: "none",
             strokeColor: "#fff",
             fillColor: "#fff",
             url: ""
         },
         anchorPoint: {
-            radius: 4,
-            stroke: 2,
+            radius: 0,
+            stroke: 0,
             style: "none",
             strokeColor: "#fff",
             fillColor: "#fff",
@@ -141,10 +143,7 @@
         var $vid = $(context.options.videoSelector, this.$element);
         var vid = getDims($vid);
         var items = [];
-        var selector = context.options.anchorSelector;
-        if ($(selector, this.$element).length === 0) {
-            selector = context.options.itemSelector;
-        }
+        var selector = getSelector.apply(this);
         $(selector, this.$element).each(function(index, element) {
             var $item = $(element);
             var item = getDims($item);
@@ -160,8 +159,6 @@
         if (!redraw) {
             return;
         }
-
-        var image;
 
         $(selector, this.$element).each(function(index, element) {
             //Get the corresponding data point based on index
@@ -221,57 +218,80 @@
             } else {
                 midPoint = calculateAngle(anchorPoint, endPoint, angle, vertical);
             }
-            image = drawImage.call(context, context.options.line.style, endPoint, midPoint, anchorPoint, color);
-
-            //Create the image and add it to this pointer item
-            if (context.options.itemSelector === selector) {
-                $(element).append(image);
-            } else {
-                $(element).parents(context.options.itemSelector).append(image);
-            }
-            $(image).css("position", "absolute");
-
-            //Place the image at the correct location based on whether the angle is going down or up
-            var vOffset = 1;
-            var hOffset = 1;
-            if ($(image).height() <= 12) {
-                vOffset = (context.options.endPoint.radius + context.options.endPoint.stroke) - Math.abs(anchorPoint.y - endPoint.y);
-            }
-            if ($(image).width() <= 12) {
-                hOffset = (context.options.endPoint.radius + context.options.endPoint.stroke) - Math.abs(anchorPoint.x - endPoint.x);
-            }
-            var placement = {
-                left: 0,
-                top: 0
-            };
-            if (vertical) {
-                if (endPoint.x > anchorPoint.x) {
-                    placement.left = anchorPoint.x;
-                } else {
-                    placement.left = anchorPoint.x - image.width;
-                }
-                if (endPoint.y > anchorPoint.y) {
-                    placement.top = anchorPoint.y - vOffset;
-                } else {
-                    placement.top = anchorPoint.y - image.height + vOffset;
-                }
-            } else {
-                if (endPoint.x > anchorPoint.x) {
-                    placement.left = anchorPoint.x;
-                } else {
-                    placement.left = anchorPoint.x - image.width;
-                }
-                if (endPoint.y > anchorPoint.y) {
-                    placement.top = anchorPoint.y - vOffset;
-                } else {
-                    placement.top = anchorPoint.y - image.height + vOffset;
-                }
-            }
-            $(image).css({
-                "top": placement.top + "px",
-                "left": placement.left + "px"
-            }).addClass("pointer");
+            drawImage.call(context, currentPoint, endPoint, midPoint, anchorPoint, color, function(image) {
+                placeImage.call(context, currentPoint, element, anchorPoint, endPoint, vertical, image);
+            });
         });
+    };
+
+    var getSelector = function() {
+        var selector = this.options.anchorSelector;
+        if ($(selector, this.$element).length === 0) {
+            selector = this.options.itemSelector;
+        }
+        return selector;
+    };
+
+    var placeImage = function(pointProps, element, anchorPoint, endPoint, vertical, image) {
+        var context = this;
+
+        var endProps = $.extend(true, {}, this.options.endPoint, pointProps.endPoint);
+        var anchorProps = $.extend(true, {}, this.options.anchorPoint, pointProps.anchorPoint);
+        var lineProps = $.extend(true, {}, this.options.line, pointProps.line);
+
+        var selector = getSelector.apply(this);
+        //Create the image and add it to this pointer item
+        if (context.options.itemSelector === selector) {
+            $(element).append(image);
+        } else {
+            $(element).parents(context.options.itemSelector).append(image);
+        }
+        $(image).css("position", "absolute");
+
+        //Place the image at the correct location based on whether the angle is going down or up
+        var vOffset = 1;
+        var hOffset = 1;
+        if ($(image).height() <= 12) {
+            vOffset = (endProps.radius + endProps.stroke) - Math.abs(anchorPoint.y - endPoint.y);
+        } else {
+            vOffset += anchorProps.radius;
+        }
+        if ($(image).width() <= 12) {
+            hOffset = (endProps.radius + endProps.stroke) - Math.abs(anchorPoint.x - endPoint.x);
+        } else {
+            hOffset += anchorProps.radius;
+        }
+        var placement = {
+            left: 0,
+            top: 0
+        };
+        if (vertical) {
+            if (endPoint.x > anchorPoint.x) {
+                placement.left = anchorPoint.x;
+            } else {
+                placement.left = anchorPoint.x - image.width;
+            }
+            if (endPoint.y > anchorPoint.y) {
+                placement.top = anchorPoint.y - vOffset;
+            } else {
+                placement.top = anchorPoint.y - image.height + vOffset;
+            }
+        } else {
+            if (endPoint.x > anchorPoint.x) {
+                placement.left = anchorPoint.x;
+            } else {
+                placement.left = anchorPoint.x - image.width;
+            }
+            if (endPoint.y > anchorPoint.y) {
+                placement.top = anchorPoint.y - vOffset;
+            } else {
+                placement.top = anchorPoint.y - image.height + vOffset;
+            }
+        }
+        $(image).css({
+            "top": placement.top + "px",
+            "left": placement.left + "px"
+        }).addClass("pointer");
     };
 
     var getDims = function($elem) {
@@ -341,9 +361,9 @@
     };
 
     //Create the images of the angled pointers
-    var drawImage = function(style, endPoint, midPoint, anchorPoint, color) {
+    var drawImage = function(pointProps, endPoint, midPoint, anchorPoint, color, callback) {
         var image = new Image();
-        var endPointRadius = this.options.endPoint.radius;
+        var context = this;
 
         var points = {
             anchor: {},
@@ -353,10 +373,13 @@
 
         var vertical = (anchorPoint.x === midPoint.x && anchorPoint.y !== midPoint.y);
 
-        //Get 
+        var endProps = $.extend(true, {}, this.options.endPoint, pointProps.endPoint);
+        var anchorProps = $.extend(true, {}, this.options.anchorPoint, pointProps.anchorPoint);
+        var lineProps = $.extend(true, {}, this.options.line, pointProps.line);
+
         var dims = {
-            w: Math.ceil(Math.abs(anchorPoint.x - endPoint.x) + endPointRadius + 6),
-            h: Math.ceil(Math.abs(endPoint.y - anchorPoint.y) + endPointRadius + 6)
+            w: Math.ceil(Math.abs(anchorPoint.x - endPoint.x) + endProps.radius + anchorProps.radius + 6),
+            h: Math.ceil(Math.abs(endPoint.y - anchorPoint.y) + endProps.radius + anchorProps.radius + 6)
         };
         //Create the canvas element in memory and define its dimensions
         var canvas = document.createElement("canvas");
@@ -375,37 +398,37 @@
 
         //Add an offset if the vertical difference in points is minimal
         var vOffset = 0;
-        if (Math.abs(anchorPoint.y - endPoint.y) <= endPointRadius) {
-            vOffset = (endPointRadius + 2) - Math.abs(anchorPoint.y - endPoint.y);
+        if (Math.abs(anchorPoint.y - endPoint.y) <= endProps.radius) {
+            vOffset = (this.options.endPoint.radius + 2) - Math.abs(anchorPoint.y - endPoint.y);
             if (vOffset < 0) {
                 vOffset = 0;
             }
         }
         //Pointer coming from right or left?
         if (endPoint.x > anchorPoint.x) {
-            points.anchor.x = 1;
-            points.mid.x = Math.ceil(midPoint.x - anchorPoint.x + 1);
-            points.end.x = Math.ceil(endPoint.x - anchorPoint.x + 1);
+            points.anchor.x = 1 + anchorProps.radius;
+            points.mid.x = Math.ceil(midPoint.x - anchorPoint.x) + points.anchor.x;
+            points.end.x = Math.ceil(endPoint.x - anchorPoint.x) + points.anchor.x;
         } else {
-            points.anchor.x = Math.ceil(dims.w - 1);
-            points.mid.x = Math.ceil(dims.w - (anchorPoint.x - midPoint.x) - 1);
-            points.end.x = Math.ceil(dims.w - (anchorPoint.x - endPoint.x) - 1);
+            points.anchor.x = Math.ceil(dims.w - 1 - anchorProps.radius);
+            points.mid.x = points.anchor.x - Math.ceil((anchorPoint.x - midPoint.x) - 1);
+            points.end.x = points.anchor.x - Math.ceil((anchorPoint.x - endPoint.x) - 1);
         }
         //Pointer coming from top or bottom?
         if (endPoint.y > anchorPoint.y) {
-            points.anchor.y = 1;
-            points.mid.y = Math.ceil(midPoint.y - anchorPoint.y + 1);
-            points.end.y = Math.ceil(endPoint.y - anchorPoint.y + 1);
+            points.anchor.y = 1 + anchorProps.radius;
+            points.mid.y = Math.ceil(midPoint.y - anchorPoint.y) + points.anchor.y;
+            points.end.y = Math.ceil(endPoint.y - anchorPoint.y) + points.anchor.y;
         } else if (anchorPoint.y > endPoint.y) {
-            points.anchor.y = Math.ceil(dims.h - vOffset - 1);
-            points.mid.y = Math.ceil(points.anchor.y - (anchorPoint.y - midPoint.y) - vOffset - 1);
-            points.end.y = Math.ceil(dims.h - (anchorPoint.y - endPoint.y) - vOffset - 1);
+            points.anchor.y = Math.ceil(dims.h - vOffset - 1 - anchorProps.radius);
+            points.mid.y = points.anchor.y - Math.ceil((anchorPoint.y - midPoint.y) - vOffset - 1);
+            points.end.y = points.anchor.y - Math.ceil((anchorPoint.y - endPoint.y) - vOffset - 1);
         }
-        if (style === "angled") {
-            drawLine(drawing, [points.anchor, points.mid, points.end], this.options.line.width, this.options.line.color);
-        } else if (style === "straight") {
-            drawLine(drawing, [points.anchor, points.end], this.options.line.width, this.options.line.color);
-        } else if (style === "curved") {
+        if (lineProps.style === "angled") {
+            drawLine(drawing, [points.anchor, points.mid, points.end], lineProps.width, lineProps.color);
+        } else if (lineProps.style === "straight") {
+            drawLine(drawing, [points.anchor, points.end], lineProps.width, lineProps.color);
+        } else if (lineProps.style === "curved") {
             var borderRadius = 100;
             //If it's a right angle then replace the midpoint with two points that create a right angle
             var shortA = {
@@ -436,7 +459,7 @@
                 } else {
                     shortB.x = points.mid.x + borderRadius;
                 }
-                drawCurve(drawing, [points.anchor, shortA, shortB, points.end], this.options.line.width, this.options.line.color, vertical);
+                drawCurve(drawing, [points.anchor, shortA, shortB, points.end], lineProps.width, lineProps.color, vertical);
             } else if (points.mid.y === points.anchor.y && points.mid.x === points.end.x) {
                 shortA.y = points.anchor.y;
                 shortB.x = points.end.x;
@@ -457,19 +480,76 @@
                 } else {
                     shortB.y = points.mid.y + borderRadius;
                 }
-                drawCurve(drawing, [points.anchor, shortA, shortB, points.end], this.options.line.width, this.options.line.color, vertical);
+                drawCurve(drawing, [points.anchor, shortA, shortB, points.end], lineProps.width, lineProps.color, vertical);
             } else {
-                drawCurve(drawing, [points.anchor, points.mid, points.end], this.options.line.width, this.options.line.color, vertical);
+                drawCurve(drawing, [points.anchor, points.mid, points.end], lineProps.width, lineProps.color, vertical);
             }
         }
-        if (this.options.endPoint.style === "circle") {
-            drawCircle(drawing, points.end, endPointRadius, this.options.endPoint.stroke, color, this.options.endPoint.strokeColor);
-        } else if (this.options.endPoint.style === "square") {
-            drawSquare(drawing, points.end, endPointRadius, this.options.endPoint.stroke, color, this.options.endPoint.strokeColor);
-        }
 
-        image.src = canvas.toDataURL("image/png");
-        return image;
+        drawAnchorPoint.call(context, drawing, points.anchor, anchorProps, function() {
+            drawEndPoint.call(context, drawing, points.end, endProps, function() {
+                image.src = canvas.toDataURL("image/png");
+                callback(image);
+            });
+        });
+    };
+
+    var drawAnchorPoint = function(drawing, point, anchor, callback) {
+        if (anchor.style === "circle") {
+            drawCircle(drawing, point, anchor.radius, anchor.stroke, anchor.fillColor, anchor.strokeColor);
+        } else if (anchor.style === "square") {
+            drawSquare(drawing, point, anchor.radius, anchor.stroke, anchor.fillColor, anchor.strokeColor);
+        }
+        //If the point is an image then wait for it to complete, otherwise call the callback
+        if (anchor.style === "image" && anchor.url !== "") {
+            drawImageEndpoint(drawing, point, anchor.url, anchor.radius, callback);
+        } else {
+            callback.call(this);
+        }
+    };
+
+    var drawEndPoint = function(drawing, point, end, callback) {
+        if (end.style === "circle") {
+            drawCircle(drawing, point, end.radius, end.stroke, end.fillColor, end.strokeColor);
+        } else if (end.style === "square") {
+            drawSquare(drawing, point, end.radius, end.stroke, end.fillColor, end.strokeColor);
+        }
+        //If the point is an image then wait for it to complete, otherwise call the callback
+        if (end.style === "image" && end.url !== "") {
+            drawImageEndpoint(drawing, point, end.url, end.radius, callback);
+        } else {
+            callback.call(this);
+        }
+    };
+
+    var testImage = function(img) {
+        var valid = false;
+        var canvas = document.createElement("canvas");
+        var drawing = canvas.getContext("2d");
+        drawing.drawImage(img, 1, 1);
+        try {
+            var encoded = canvas.toDataURL();
+            valid = true;
+        } catch (ex) {
+            console.log("The image specified for the endpoint is not a valid image for cross origin resource sharing");
+        }
+        return valid;
+    };
+
+    var drawImageEndpoint = function(canvas, position, url, size, callback) {
+        var img = document.createElement("img");
+        img.src = url;
+        img.crossOrigin = "Anonymous";
+        img.onload = function() {
+            if (testImage(img)) {
+                canvas.drawImage(img, position.x, position.y, size, size);
+            }
+            callback();
+        };
+        img.onerror = function() {
+            console.log("Couldn't load the endpoint image. Please make sure it's hosted on your sire, is a valid cross origin image, is not located in a file path, and is accessible.");
+            callback();
+        };
     };
 
     var drawCurve = function(canvas, points, width, color, vertical) {
@@ -529,39 +609,20 @@
         canvas.fill();
     };
 
-    var drawSquare = function(canvas, position, side, strokeWidth, bgColor, strokeColor) {
+    var drawSquare = function(canvas, position, radius, strokeWidth, bgColor, strokeColor) {
         canvas.beginPath();
         canvas.strokeStyle = strokeColor;
         canvas.fillStyle = bgColor;
         canvas.lineWidth = strokeWidth;
         if (strokeWidth > 0) {
-            canvas.rect(position.x - side / 2, position.y - side / 2, side, side);
+            canvas.rect(position.x - radius, position.y - radius, radius * 2, radius * 2);
             canvas.stroke();
         }
-        canvas.fillRect(position.x - side / 2, position.y - side / 2, side, side);
+        canvas.fillRect(position.x - radius, position.y - radius, radius * 2, radius * 2);
     };
 
     VideoPointer.prototype.getOptions = function(options) {
-        var line, endPoint, anchorPoint;
-        if (options.line !== undefined) {
-            line = $.extend({}, this.getDefaults().line, options.line);
-        }
-        if (options.endPoint !== undefined) {
-            endPoint = $.extend({}, this.getDefaults().endPoint, options.endPoint);
-        }
-        if (options.anchorPoint !== undefined) {
-            anchorPoint = $.extend({}, this.getDefaults().anchorPoint, options.anchorPoint);
-        }
-        var opts = $.extend({}, this.getDefaults(), this.$element.data(), options);
-        if (line !== undefined) {
-            opts.line = line;
-        }
-        if (endPoint !== undefined) {
-            opts.endPoint = endPoint;
-        }
-        if (anchorPoint !== undefined) {
-            opts.anchorPoint = anchorPoint;
-        }
+        var opts = $.extend(true, {}, this.getDefaults(), this.$element.data(), options);
         return opts;
     };
 

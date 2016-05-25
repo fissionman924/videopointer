@@ -411,8 +411,8 @@
             points.end.x = Math.ceil(endPoint.x - anchorPoint.x) + points.anchor.x;
         } else {
             points.anchor.x = Math.ceil(dims.w - 1 - anchorProps.radius);
-            points.mid.x = points.anchor.x - Math.ceil((anchorPoint.x - midPoint.x) - 1);
-            points.end.x = points.anchor.x - Math.ceil((anchorPoint.x - endPoint.x) - 1);
+            points.mid.x = points.anchor.x - Math.ceil(anchorPoint.x - midPoint.x);
+            points.end.x = points.anchor.x - Math.ceil(anchorPoint.x - endPoint.x);
         }
         //Pointer coming from top or bottom?
         if (endPoint.y > anchorPoint.y) {
@@ -421,8 +421,8 @@
             points.end.y = Math.ceil(endPoint.y - anchorPoint.y) + points.anchor.y;
         } else if (anchorPoint.y > endPoint.y) {
             points.anchor.y = Math.ceil(dims.h - vOffset - 1 - anchorProps.radius);
-            points.mid.y = points.anchor.y - Math.ceil((anchorPoint.y - midPoint.y) - vOffset - 1);
-            points.end.y = points.anchor.y - Math.ceil((anchorPoint.y - endPoint.y) - vOffset - 1);
+            points.mid.y = points.anchor.y - Math.ceil((anchorPoint.y - midPoint.y) - vOffset);
+            points.end.y = points.anchor.y - Math.ceil((anchorPoint.y - endPoint.y) - vOffset);
         }
         if (lineProps.style === "angled") {
             drawLine(drawing, [points.anchor, points.mid, points.end], lineProps.width, lineProps.color);

@@ -141,12 +141,12 @@
         var redraw = false;
         //Get location and dimensions for the video container
         var $vid = $(context.options.videoSelector, this.$element);
-        var vid = getDims($vid);
+        var vid = getAbsoluteDims($vid);
         var items = [];
         var selector = getSelector.apply(this);
         $(selector, this.$element).each(function(index, element) {
             var $item = $(element);
-            var item = getDims($item);
+            var item = getAbsoluteDims($item);
             items.push(item);
         });
         //Check to see if there are any changes in the size or position of the key elements
@@ -188,23 +188,23 @@
             endPoint.y = (currentPoint.y / 100) * vid.h + vid.y;
 
             var $anchor = $(element);
-            var anchor = getDims($anchor);
+            var anchor = getAbsoluteDims($anchor);
             //If the pointer is originating from above or below the video then make the line go vertical before horizontal
             if (isVertical(vid, anchor)) {
                 vertical = true;
                 if ($anchor.position().top > vid.y + vid.h) {
-                    anchorPoint.y = $anchor.position().top;
+                    anchorPoint.y = $anchor.offset().top;
                 } else {
-                    anchorPoint.y = $anchor.position().top + $anchor.outerHeight();
+                    anchorPoint.y = $anchor.offset().top + $anchor.outerHeight();
                 }
-                anchorPoint.x = $anchor.position().left + $anchor.outerWidth() / 2;
+                anchorPoint.x = $anchor.offset().left + $anchor.outerWidth() / 2;
             } else {
                 if ($anchor.position().left > vid.x + vid.w) {
-                    anchorPoint.x = $anchor.position().left;
+                    anchorPoint.x = $anchor.offset().left;
                 } else {
-                    anchorPoint.x = $anchor.position().left + $anchor.outerWidth();
+                    anchorPoint.x = $anchor.offset().left + $anchor.outerWidth();
                 }
-                anchorPoint.y = $anchor.position().top + $anchor.outerHeight() / 2;
+                anchorPoint.y = $anchor.offset().top + $anchor.outerHeight() / 2;
             }
 
             //Get the color for the point
@@ -219,7 +219,7 @@
                 midPoint = calculateAngle(anchorPoint, endPoint, angle, vertical);
             }
             drawImage.call(context, currentPoint, endPoint, midPoint, anchorPoint, color, function(image) {
-                placeImage.call(context, currentPoint, element, anchorPoint, endPoint, vertical, image);
+                placeImage.call(context, currentPoint, element, anchorPoint, getDims($anchor), endPoint, vertical, image);
             });
         });
     };
@@ -232,7 +232,7 @@
         return selector;
     };
 
-    var placeImage = function(pointProps, element, anchorPoint, endPoint, vertical, image) {
+    var placeImage = function(pointProps, element, anchorPoint, relativeAnchor, endPoint, vertical, image) {
         var context = this;
 
         var endProps = $.extend(true, {}, this.options.endPoint, pointProps.endPoint);
@@ -267,31 +267,41 @@
         };
         if (vertical) {
             if (endPoint.x > anchorPoint.x) {
-                placement.left = anchorPoint.x;
+                placement.left = relativeAnchor.x;
             } else {
-                placement.left = anchorPoint.x - image.width;
+                placement.left = relativeAnchor.x - image.width;
             }
             if (endPoint.y > anchorPoint.y) {
-                placement.top = anchorPoint.y - vOffset;
+                placement.top = relativeAnchor.y - vOffset;
             } else {
-                placement.top = anchorPoint.y - image.height + vOffset;
+                placement.top = relativeAnchor.y - image.height + vOffset;
             }
         } else {
             if (endPoint.x > anchorPoint.x) {
-                placement.left = anchorPoint.x;
+                placement.left = relativeAnchor.x;
             } else {
-                placement.left = anchorPoint.x - image.width;
+                placement.left = relativeAnchor.x - image.width;
             }
             if (endPoint.y > anchorPoint.y) {
-                placement.top = anchorPoint.y - vOffset;
+                placement.top = relativeAnchor.y - vOffset + relativeAnchor.h / 2;
             } else {
-                placement.top = anchorPoint.y - image.height + vOffset;
+                placement.top = relativeAnchor.y - image.height + vOffset + relativeAnchor.h / 2;
             }
         }
         $(image).css({
             "top": placement.top + "px",
             "left": placement.left + "px"
         }).addClass("pointer");
+    };
+
+    var getAbsoluteDims = function($elem) {
+        var dims = {
+            x: $elem.offset().left,
+            y: $elem.offset().top,
+            w: $elem.outerWidth(),
+            h: $elem.outerHeight()
+        };
+        return dims;
     };
 
     var getDims = function($elem) {

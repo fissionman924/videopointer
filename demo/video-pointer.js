@@ -140,7 +140,7 @@
         var angle = this.options.line.angle;
         var redraw = false;
         //Get location and dimensions for the video container
-        var $vid = $(context.options.videoSelector, this.$element);
+        var $vid = $($(context.options.videoSelector, this.$element)[0]);
         var vid = getAbsoluteDims($vid);
         var items = [];
         var selector = getSelector.apply(this);
@@ -192,19 +192,19 @@
             //If the pointer is originating from above or below the video then make the line go vertical before horizontal
             if (isVertical(vid, anchor)) {
                 vertical = true;
-                if ($anchor.position().top > vid.y + vid.h) {
-                    anchorPoint.y = $anchor.offset().top;
+                if (anchor.y > vid.y + vid.h) {
+                    anchorPoint.y = anchor.y;
                 } else {
-                    anchorPoint.y = $anchor.offset().top + $anchor.outerHeight();
+                    anchorPoint.y = anchor.y + anchor.h;
                 }
-                anchorPoint.x = $anchor.offset().left + $anchor.outerWidth() / 2;
+                anchorPoint.x = anchor.x + anchor.w / 2;
             } else {
                 if ($anchor.position().left > vid.x + vid.w) {
-                    anchorPoint.x = $anchor.offset().left;
+                    anchorPoint.x = anchor.x;
                 } else {
-                    anchorPoint.x = $anchor.offset().left + $anchor.outerWidth();
+                    anchorPoint.x = anchor.x + anchor.w;
                 }
-                anchorPoint.y = $anchor.offset().top + $anchor.outerHeight() / 2;
+                anchorPoint.y = anchor.y + anchor.h / 2;
             }
 
             //Get the color for the point
@@ -251,12 +251,13 @@
         //Place the image at the correct location based on whether the angle is going down or up
         var vOffset = 1;
         var hOffset = 1;
-        if ($(image).height() <= 12) {
+        var minimumOffset = endProps.radius > anchorProps.radius ? endProps.radius * 2 : anchorProps.radius;
+        if ($(image).height() <= minimumOffset) {
             vOffset = (endProps.radius + endProps.stroke) - Math.abs(anchorPoint.y - endPoint.y);
         } else {
             vOffset += anchorProps.radius;
         }
-        if ($(image).width() <= 12) {
+        if ($(image).width() <= minimumOffset) {
             hOffset = (endProps.radius + endProps.stroke) - Math.abs(anchorPoint.x - endPoint.x);
         } else {
             hOffset += anchorProps.radius;
@@ -298,8 +299,8 @@
         var dims = {
             x: $elem.offset().left,
             y: $elem.offset().top,
-            w: $elem.outerWidth(),
-            h: $elem.outerHeight()
+            w: $elem.width(),
+            h: $elem.height()
         };
         return dims;
     };
@@ -308,8 +309,8 @@
         var dims = {
             x: $elem.position().left,
             y: $elem.position().top,
-            w: $elem.outerWidth(),
-            h: $elem.outerHeight()
+            w: $elem.width(),
+            h: $elem.height()
         };
         return dims;
     };

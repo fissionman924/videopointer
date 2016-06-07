@@ -1915,14 +1915,17 @@ $(document).ready(function(){
   section2Solution2Stop = 0,
   section2Solution3Stop = 0;
 </script>
+    <style>
+        .pointer { max-width:none!important; }
+    </style>
 <script>
   $(function() {
       $("#ball_iYVUtJsD0hkasS7DjefCQQ").attr("data-ixp-flow-step-placement","out");
       $("#ball_ioVvGejBUaEuhFAAVuaCkmg").attr("data-ixp-flow-step-placement","in");
       
     $(".mrm-expander-container").off("mouseover").off("mouseleave");
-  	$(".mrm-signature-section-1-grid").videopointer({points:[{x:25,y:25,time:5},{x:75,y:75,time:2}],itemSelector:".mrm-expander-container",anchorSelector:".mrm-signature-solution-nav-icon"});  
-    $(".mrm-signature-section-2-grid").videopointer({points:[{x:75,y:25,time:0},{x:25,y:75,time:0}],itemSelector:".mrm-expander-container",anchorSelector:".mrm-signature-solution-nav-icon"});  
+  	$(".mrm-signature-section-1-grid").videopointer({points:[{x:0,y:0,time:5},{x:100,y:100,time:2}],itemSelector:".mrm-expander-container",anchorSelector:".mrm-signature-solution-nav-icon",line:{width:1},endPoint:{style:"circle",radius:3, stroke:2,fillColor:"#000"},debug:false});  
+    $(".mrm-signature-section-2-grid").videopointer({points:[{x:100,y:0,time:0},{x:0,y:100,time:0}],itemSelector:".mrm-expander-container",anchorSelector:".mrm-signature-solution-nav-icon"});  
   });  
 </script>
 <script src="../src/js/video-pointer.js"></script>

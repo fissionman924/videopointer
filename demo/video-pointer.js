@@ -1,5 +1,6 @@
 /**
  * @license Copyright 2016 Nathaniel Lord
+ * http://fissionman924.github.io/videopointer/
  */
 (function($) {
     'use strict';
@@ -48,7 +49,8 @@
         },
         videoSelector: "video",
         itemSelector: ".pointer-item",
-        anchorSelector: ".pointer-anchor"
+        anchorSelector: ".pointer-anchor",
+        debug: false
     };
 
     //Initialization function
@@ -199,14 +201,17 @@
                 }
                 anchorPoint.x = anchor.x + anchor.w / 2;
             } else {
-                if ($anchor.position().left > vid.x + vid.w) {
+                if (anchor.x > vid.x + vid.w) {
                     anchorPoint.x = anchor.x;
                 } else {
                     anchorPoint.x = anchor.x + anchor.w;
                 }
                 anchorPoint.y = anchor.y + anchor.h / 2;
             }
-
+            if (context.options.debug) {
+                placePoint(anchorPoint.x, anchorPoint.y);
+                placePoint(endPoint.x, endPoint.y);
+            }
             //Get the color for the point
             var color = context.options.endPoint.fillColor;
             if (currentPoint.color !== undefined) {
@@ -224,6 +229,21 @@
         });
     };
 
+    var placePoint = function(x, y) {
+        var $point = $("<div class='point'></div>");
+        $point.css({
+            "position": "absolute",
+            "left": (x - 3) + "px",
+            "top": (y - 3) + "px",
+            "height": "6px",
+            "width": "6px",
+            "border-radius": "50%",
+            "background-color": "white",
+            "z-index": "10000"
+        });
+        $("body").append($point);
+    };
+
     var getSelector = function() {
         var selector = this.options.anchorSelector;
         if ($(selector, this.$element).length === 0) {
@@ -235,18 +255,45 @@
     var placeImage = function(pointProps, element, anchorPoint, relativeAnchor, endPoint, vertical, image) {
         var context = this;
 
+        $(image).css({
+            "max-width": "none",
+            "min-width": "none",
+            "max-height": "none",
+            "min-height": "none",
+            "position": "absolute"
+        });
+
         var endProps = $.extend(true, {}, this.options.endPoint, pointProps.endPoint);
         var anchorProps = $.extend(true, {}, this.options.anchorPoint, pointProps.anchorPoint);
         var lineProps = $.extend(true, {}, this.options.line, pointProps.line);
 
         var selector = getSelector.apply(this);
+        var difference = {
+            x: 0,
+            y: 0
+        };
         //Create the image and add it to this pointer item
         if (context.options.itemSelector === selector) {
+            if ($(element).parents(context.options.itemSelector).css("position") === "static") {
+                difference.x = $(element).offset().left - $(element).offsetParent().offset().left;
+                difference.y = $(element).offset().top - $(element).offsetParent().offset().top;
+            } else {
+                difference.x = 0;
+                difference.y = 0;
+            }
             $(element).append(image);
         } else {
+            if ($(element).parents(context.options.itemSelector).css("position") === "static") {
+                difference.x = $(element).offset().left - $(element).parents(context.options.itemSelector).offsetParent().offset().left;
+                difference.y = $(element).offset().top - $(element).parents(context.options.itemSelector).offsetParent().offset().top;
+            } else {
+                difference.x = $(element).offset().left - $(element).parents(context.options.itemSelector).offset().left;
+                difference.y = $(element).offset().top - $(element).parents(context.options.itemSelector).offset().top;
+            }
             $(element).parents(context.options.itemSelector).append(image);
         }
-        $(image).css("position", "absolute");
+        //Because the item container may have several relative containers between its top and the anchor point we need to calculate offset differences between the anchor and the item container
+
 
         //Place the image at the correct location based on whether the angle is going down or up
         var vOffset = 1;
@@ -268,25 +315,25 @@
         };
         if (vertical) {
             if (endPoint.x > anchorPoint.x) {
-                placement.left = relativeAnchor.x;
+                placement.left = difference.x;
             } else {
-                placement.left = relativeAnchor.x - image.width;
+                placement.left = difference.x - image.width;
             }
             if (endPoint.y > anchorPoint.y) {
-                placement.top = relativeAnchor.y - vOffset;
+                placement.top = difference.y - vOffset;
             } else {
-                placement.top = relativeAnchor.y - image.height + vOffset;
+                placement.top = difference.y - image.height + vOffset;
             }
         } else {
             if (endPoint.x > anchorPoint.x) {
-                placement.left = relativeAnchor.x;
+                placement.left = difference.x;
             } else {
-                placement.left = relativeAnchor.x - image.width;
+                placement.left = difference.x - image.width;
             }
             if (endPoint.y > anchorPoint.y) {
-                placement.top = relativeAnchor.y - vOffset + relativeAnchor.h / 2;
+                placement.top = (difference.y + relativeAnchor.h / 2) - vOffset;
             } else {
-                placement.top = relativeAnchor.y - image.height + vOffset + relativeAnchor.h / 2;
+                placement.top = (difference.y + relativeAnchor.h / 2) + vOffset - image.height;
             }
         }
         $(image).css({

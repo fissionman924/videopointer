@@ -297,8 +297,8 @@
 
     var getAbsoluteDims = function($elem) {
         var dims = {
-            x: $elem.offset().left,
-            y: $elem.offset().top,
+            x: $elem.offset().left + parseInt($elem.css("padding-left")) + parseInt($elem.css("border-left-width")),
+            y: $elem.offset().top + parseInt($elem.css("padding-top")) + parseInt($elem.css("border-top-width")),
             w: $elem.width(),
             h: $elem.height()
         };
@@ -307,8 +307,8 @@
 
     var getDims = function($elem) {
         var dims = {
-            x: $elem.position().left,
-            y: $elem.position().top,
+            x: $elem.position().left + parseInt($elem.css("padding-left")) + parseInt($elem.css("border-left-width")),
+            y: $elem.position().top + parseInt($elem.css("padding-top")) + parseInt($elem.css("border-top-width")),
             w: $elem.width(),
             h: $elem.height()
         };
